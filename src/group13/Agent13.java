@@ -16,14 +16,18 @@ import genius.core.parties.NegotiationInfo;
  * if the utility of the bid is higher than Example Agent's last bid.
  */
 public class Agent13 extends AbstractNegotiationParty {
-    private final String description = "Example Agent";
+    private final String description = "";
 
-    private Bid lastReceivedOffer; // offer on the table
+    private Bid lastReceivedOffer;
     private Bid myLastOffer;
 
     @Override
     public void init(NegotiationInfo info) {
         super.init(info);
+
+        if (hasPreferenceUncertainty()) {
+
+        }
 
     }
 
