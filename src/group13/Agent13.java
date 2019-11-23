@@ -4,11 +4,13 @@ import java.util.List;
 
 import genius.core.AgentID;
 import genius.core.Bid;
+import genius.core.Domain;
 import genius.core.actions.Accept;
 import genius.core.actions.Action;
 import genius.core.actions.Offer;
 import genius.core.parties.AbstractNegotiationParty;
 import genius.core.parties.NegotiationInfo;
+import genius.core.uncertainty.BidRanking;
 
 /**
  * ExampleAgent returns the bid that maximizes its own utility for half of the negotiation session.
@@ -26,7 +28,11 @@ public class Agent13 extends AbstractNegotiationParty {
         super.init(info);
 
         if (hasPreferenceUncertainty()) {
+            Domain domain = getDomain();
+            UncertaintyModelling factory = new UncertaintyModelling(domain);
+            BidRanking bidRanking = userModel.getBidRanking();
 
+            factory.UncertaintyEstimation(bidRanking);
         }
 
     }

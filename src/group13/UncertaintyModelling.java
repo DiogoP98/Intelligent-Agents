@@ -9,10 +9,13 @@ import genius.core.uncertainty.BidRanking;
 import genius.core.utility.AdditiveUtilitySpace;
 import genius.core.utility.Evaluator;
 import scpsolver.constraints.LinearBiggerThanEqualsConstraint;
+import scpsolver.constraints.LinearEqualsConstraint;
 import scpsolver.constraints.LinearSmallerThanEqualsConstraint;
+import scpsolver.lpsolver.LinearProgramSolver;
+import scpsolver.lpsolver.SolverFactory;
 import scpsolver.problems.LinearProgram;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -33,23 +36,74 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
     public void UncertaintyEstimation(BidRanking bids) {
         estimateUsingBidRanks(bids); //to get the evaluation for the values of each issue
         AdditiveUtilitySpace u = getUtilitySpace();
-        double [] variables = new double[(bids.getSize() - 1) * 2];
+
+        int constraints = 0;
+
+        double [] variables = new double[(bids.getSize() - 1) + this.domain.getIssues().size()];
+        Arrays.fill(variables, 0, bids.getSize() - 2, 1);
+        LinearProgram lp = new LinearProgram(variables);
+
+        double [] slacks = new double[(bids.getSize() - 1)];
+        int k = 0;
+        slacks[0] = 1;
+
+        double [] weightszero = new double[this.domain.getIssues().size()];
+        double [] zzero = new double[(bids.getSize() - 1)];
+
+        double [] previous_values = new double[this.domain.getIssues().size()];
+        double [] values_issue = new double[this.domain.getIssues().size()];
+        double [] weights = new double[this.domain.getIssues().size()];
+        double [] vars = new double [(bids.getSize() - 1) + this.domain.getIssues().size()];
 
         for(Bid b: bids.getBidOrder()) {
-            double [] values_issue = new double[this.domain.getIssues().size()];
             int j = 0;
             for(Issue i: getIssues()) {
                 Evaluator evaluator = u.getEvaluator(i);
                 double value = evaluator.getEvaluation(u, b, i.getNumber());
+                vars[j + (bids.getSize() - 1)] = value;
+                lp.addConstraint(new LinearBiggerThanEqualsConstraint(vars, 0.0, "c" + String.valueOf(constraints++)));
+                vars[j + (bids.getSize() - 1)] = 0.0;
+
                 values_issue[j++] = value;
             }
-            LinearProgram lp = new LinearProgram(new double[]{1.0,1.0});
-            lp.addConstraint(new LinearBiggerThanEqualsConstraint(values_issue, 8.0, "c1"));
-            lp.addConstraint(new LinearBiggerThanEqualsConstraint(new double[]{0.0,4.0}, 4.0, "c2"));
-            lp.addConstraint(new LinearSmallerThanEqualsConstraint(new double[]{2.0,0.0}, 2.0, "c3"));
-            double [] values_issue_previous = values_issue;
+
+
+
+            if(k > 0) {
+                for(int c = 0; c < values_issue.length; c++) {
+                    weights[c] = values_issue[c] - previous_values[c];
+                }
+
+                System.arraycopy(slacks, 0, vars, 0, (bids.getSize() - 1));
+                System.arraycopy(weights, 0, vars, (bids.getSize() - 1), this.domain.getIssues().size());
+
+                System.arraycopy(slacks, 0, vars, 0, (bids.getSize() - 1));
+                System.arraycopy(weightszero, 0, vars, (bids.getSize() - 1), this.domain.getIssues().size());
+
+                lp.addConstraint(new LinearBiggerThanEqualsConstraint(vars, 0.0, "c" + String.valueOf(constraints++)));
+                lp.addConstraint(new LinearBiggerThanEqualsConstraint(vars, 0.0, "c" + String.valueOf(constraints++)));
+
+            }
+
+            if(k == bids.getSize() - 1) {
+                System.arraycopy(zzero, 0, vars, 0, (bids.getSize() - 1));
+                System.arraycopy(values_issue, 0, vars, (bids.getSize() - 1), this.domain.getIssues().size());
+
+                lp.addConstraint(new LinearEqualsConstraint(vars, 1.0, "c" + String.valueOf(constraints++)));
+            }
+
+            variables[k] = 0;
+            variables[k++] = 1;
+
+            for(int c = 0; c < values_issue.length; c++) {
+                previous_values[c] = values_issue[c];
+            }
 
         }
+
+        LinearProgramSolver solver  = SolverFactory.newDefault();
+        double[] sol = solver.solve(lp);
+        System.out.println("Finished");
 
     }
 
