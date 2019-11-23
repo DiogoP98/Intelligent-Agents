@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="add49c30-608a-4caf-88e1-efdc17207919" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LPSOLVESolverPack.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/libglpkjni_x64.dylib" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/group13/Agent13.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/group13/Agent13.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/group13/UncertaintyModelling.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/group13/UncertaintyModelling.java" afterDir="false" />
-    </list>
+    <list default="true" id="add49c30-608a-4caf-88e1-efdc17207919" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -92,6 +86,7 @@
       <option name="presentableId" value="Default" />
       <updated>1574435312775</updated>
       <workItem from="1574435314427" duration="7226000" />
+      <workItem from="1574536927130" duration="13000" />
     </task>
     <servers />
   </component>
@@ -103,7 +98,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>
