@@ -22,17 +22,20 @@ public class Agent13 extends AbstractNegotiationParty {
 
     private Bid lastReceivedOffer;
     private Bid myLastOffer;
+    private OpponentModelling opponent;
 
     @Override
     public void init(NegotiationInfo info) {
         super.init(info);
+        Domain domain = getDomain();
 
         if (hasPreferenceUncertainty()) {
-            //Domain domain = getDomain();
             //UncertaintyModelling factory = new UncertaintyModelling(domain);
             //BidRanking bidRanking = userModel.getBidRanking();
 
             //factory.UncertaintyEstimation(bidRanking);
+
+            this.opponent = new OpponentModelling(domain);
         }
 
     }
@@ -87,6 +90,11 @@ public class Agent13 extends AbstractNegotiationParty {
 
             // storing last received offer
             lastReceivedOffer = offer.getBid();
+
+            double predictedUtility = this.opponent.updateFrequency(lastReceivedOffer);
+            System.out.println(lastReceivedOffer);
+            System.out.println(predictedUtility);
+            System.out.println("---------");
         }
     }
 

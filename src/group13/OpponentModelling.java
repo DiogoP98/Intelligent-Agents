@@ -6,6 +6,7 @@ import genius.core.issue.Issue;
 import genius.core.issue.IssueDiscrete;
 import genius.core.issue.ValueDiscrete;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -40,6 +41,11 @@ public class OpponentModelling {
             this.frequency[issueKey][valueKey] += 1;
         }
 
+        System.out.println("Frequency: ");
+        for(int i = 0; i < this.frequency.length; i++)
+            System.out.println(Arrays.toString(this.frequency[i]));
+        System.out.println("------------");
+
         double utility = updateOpponentModel(issues, valuesUsed);
 
         return utility;
@@ -49,6 +55,11 @@ public class OpponentModelling {
         double [] predictedValues = updateWeightsAndOrder(issues, valuesUsed);
         double utility = 0;
 
+        System.out.println("Weights: ");
+        System.out.println(Arrays.toString(this.weights));
+        System.out.println("Predicted values: ");
+        System.out.println(Arrays.toString(predictedValues));
+        System.out.println("----------");
         for(int i = 0; i < issues.size(); i++)
             utility += this.weights[i]*predictedValues[i];
 
@@ -70,7 +81,7 @@ public class OpponentModelling {
             for(ValueDiscrete v: issueDiscrete.getValues()) {
                 Integer valueKey = this.mapping_values.get(v.toString() + String.valueOf(issueNumber));
                 Integer freq = this.frequency[issueKey][valueKey];
-                weightsIntermediate[issueKey] += (freq * freq) / (this.numberOfBids*this.numberOfBids);
+                weightsIntermediate[issueKey] += (freq * freq) / (this.numberOfBids * this.numberOfBids);
             }
         }
 
@@ -83,8 +94,7 @@ public class OpponentModelling {
                 int issueNumber2 = j.getNumber();
                 Integer issueKey2 = this.mapping_issues.get(issueNumber2);
 
-                if(issueKey1 != issueKey2)
-                    sum += weightsIntermediate[issueKey2];
+                sum += weightsIntermediate[issueKey2];
             }
 
             this.weights[issueKey1] = weightsIntermediate[issueKey1] / sum;
