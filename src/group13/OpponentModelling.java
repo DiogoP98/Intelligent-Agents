@@ -81,7 +81,7 @@ public class OpponentModelling {
             for(ValueDiscrete v: issueDiscrete.getValues()) {
                 Integer valueKey = this.mapping_values.get(v.toString() + String.valueOf(issueNumber));
                 Integer freq = this.frequency[issueKey][valueKey];
-                weightsIntermediate[issueKey] += (freq * freq) / (this.numberOfBids * this.numberOfBids);
+                weightsIntermediate[issueKey] += (Math.pow(freq,freq)) / (Math.pow(this.numberOfBids,this.numberOfBids));
             }
         }
 
@@ -111,9 +111,7 @@ public class OpponentModelling {
                 order += 1;
         }
 
-        double predictedValue = (size - order + 1) / size;
-
-        return predictedValue;
+        return  (size - order + 1) / size;
     }
 
     private void buildData() {
