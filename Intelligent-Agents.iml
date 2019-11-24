@@ -8,7 +8,9 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="genius-9.1.12" level="project" />
-    <orderEntry type="library" name="SCPSolver" level="project" />
     <orderEntry type="library" name="GLPKSolverPack" level="project" />
+    <orderEntry type="library" name="SCPSolver" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="GLPKSolverPack" level="application" />
+    <orderEntry type="library" scope="RUNTIME" name="SCPSolver" level="application" />
   </component>
 </module>

@@ -57,7 +57,7 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
 
         for(Bid b: bids.getBidOrder()) {
             int j = 0;
-            for(Issue i: getIssues()) {
+            for(Issue i: b.getIssues()) {
                 Evaluator evaluator = u.getEvaluator(i);
                 double value = evaluator.getEvaluation(u, b, i.getNumber());
                 vars[j + (bids.getSize() - 1)] = value;

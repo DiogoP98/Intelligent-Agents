@@ -18,7 +18,7 @@ import genius.core.uncertainty.BidRanking;
  * if the utility of the bid is higher than Example Agent's last bid.
  */
 public class Agent13 extends AbstractNegotiationParty {
-    private final String description = "";
+    private final String description = "It's changing";
 
     private Bid lastReceivedOffer;
     private Bid myLastOffer;
@@ -28,11 +28,11 @@ public class Agent13 extends AbstractNegotiationParty {
         super.init(info);
 
         if (hasPreferenceUncertainty()) {
-            Domain domain = getDomain();
-            UncertaintyModelling factory = new UncertaintyModelling(domain);
-            BidRanking bidRanking = userModel.getBidRanking();
+            //Domain domain = getDomain();
+            //UncertaintyModelling factory = new UncertaintyModelling(domain);
+            //BidRanking bidRanking = userModel.getBidRanking();
 
-            factory.UncertaintyEstimation(bidRanking);
+            //factory.UncertaintyEstimation(bidRanking);
         }
 
     }
