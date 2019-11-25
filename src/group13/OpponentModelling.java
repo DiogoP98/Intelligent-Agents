@@ -25,8 +25,6 @@ public class OpponentModelling {
     }
 
     public Double updateFrequency(Bid b) {
-        this.numberOfBids += 1;
-
         List<Issue> issues = b.getIssues();
 
         Integer[] valuesUsed = new Integer[issues.size()]; //values for each issue used on the bid
@@ -47,6 +45,8 @@ public class OpponentModelling {
         System.out.println("------------");
 
         double utility = updateOpponentModel(issues, valuesUsed);
+
+        this.numberOfBids += 1;
 
         return utility;
     }
@@ -81,7 +81,8 @@ public class OpponentModelling {
             for(ValueDiscrete v: issueDiscrete.getValues()) {
                 Integer valueKey = this.mapping_values.get(v.toString() + String.valueOf(issueNumber));
                 Integer freq = this.frequency[issueKey][valueKey];
-                weightsIntermediate[issueKey] += (Math.pow(freq,freq)) / (Math.pow(this.numberOfBids,this.numberOfBids));
+                System.out.println("N BIDS: " + this.numberOfBids);
+                weightsIntermediate[issueKey] += (Math.pow(freq,2.0)) / (Math.pow(this.numberOfBids,2.0));
             }
         }
 
