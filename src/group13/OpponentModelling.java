@@ -25,6 +25,7 @@ public class OpponentModelling {
     }
 
     public Double updateFrequency(Bid b) {
+        this.numberOfBids += 1;
         List<Issue> issues = b.getIssues();
 
         Integer[] valuesUsed = new Integer[issues.size()]; //values for each issue used on the bid
@@ -45,8 +46,6 @@ public class OpponentModelling {
         System.out.println("------------");
 
         double utility = updateOpponentModel(issues, valuesUsed);
-
-        this.numberOfBids += 1;
 
         return utility;
     }
@@ -112,7 +111,7 @@ public class OpponentModelling {
                 order += 1;
         }
 
-        return  (size - order + 1) / size;
+        return  (double) (size - order + 1) / size;
     }
 
     private void buildData() {
