@@ -2,9 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="add49c30-608a-4caf-88e1-efdc17207919" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/libs/choco-solver-4.10.2-no-dep.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/choco-solver-4.10.2-sources.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/choco-solver-4.10.2.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/SCPSolver.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GLPKSolverPack.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Intelligent-Agents.iml" beforeDir="false" afterPath="$PROJECT_DIR$/Intelligent-Agents.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SCPSolver.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/group13/Agent13.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/group13/Agent13.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/group13/OpponentModelling.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/group13/OpponentModelling.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/group13/UncertaintyModelling.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/group13/UncertaintyModelling.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -15,6 +22,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Tag Library Descriptor" />
         <option value="Class" />
       </list>
     </option>
@@ -23,14 +31,16 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1TybWHPahGaW9wmYrsy9zUlb5lk" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
   <component name="PropertiesComponent">
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="project.structure.last.edited" value="Modules" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/libs" />
+    <property name="project.structure.last.edited" value="Libraries" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
   </component>
@@ -38,12 +48,14 @@
     <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="group13" />
     </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/libs" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/libs" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/src/group13" />
-    </key>
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -79,6 +91,7 @@
     </configuration>
     <configuration name="genius-9.1.12.jar" type="JarApplication" temporary="true">
       <option name="JAR_PATH" value="$PROJECT_DIR$/genius/genius-9.1.12.jar" />
+      <option name="ALTERNATIVE_JRE_PATH" />
       <method v="2" />
     </configuration>
     <list>
@@ -107,7 +120,9 @@
       <updated>1574435312775</updated>
       <workItem from="1574435314427" duration="7226000" />
       <workItem from="1574536927130" duration="13000" />
-      <workItem from="1574606295807" duration="9215000" />
+      <workItem from="1574606295807" duration="9474000" />
+      <workItem from="1574878313126" duration="4578000" />
+      <workItem from="1574954618437" duration="8714000" />
     </task>
     <servers />
   </component>

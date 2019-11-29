@@ -8,19 +8,19 @@ import genius.core.uncertainty.AdditiveUtilitySpaceFactory;
 import genius.core.uncertainty.BidRanking;
 import genius.core.utility.AdditiveUtilitySpace;
 import genius.core.utility.Evaluator;
-import scpsolver.constraints.LinearBiggerThanEqualsConstraint;
-import scpsolver.constraints.LinearEqualsConstraint;
-import scpsolver.constraints.LinearSmallerThanEqualsConstraint;
-import scpsolver.lpsolver.LinearProgramSolver;
-import scpsolver.lpsolver.SolverFactory;
-import scpsolver.problems.LinearProgram;
+import org.chocosolver.solver.Model;
+import org.chocosolver.solver.variables.RealVar;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
     private final Domain domain;
+    private HashMap<Integer, Integer> mapping_issues = new HashMap<>();
+    private HashMap<String, Integer> mapping_z = new HashMap<String, Integer>();
+
+    private RealVar[] issueWeights;
+    private RealVar[] zvars;
 
     /**
      * Generates an simple Utility Space on the domain, with equal weights and zero values.
@@ -37,9 +37,29 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
         estimateUsingBidRanks(bids); //to get the evaluation for the values of each issue
         AdditiveUtilitySpace u = getUtilitySpace();
 
-        int constraints = 0;
+        Model model = new Model();
 
-        double [] variables = new double[(bids.getSize() - 1) + this.domain.getIssues().size()];
+        int constraints = 0;
+        int key = 0;
+
+        issueWeights = new RealVar[getDomain().getIssues().size()];
+        zvars = new RealVar[bids.getSize() - 1];
+
+        List<Issue> issue = this.getDomain().getIssues();
+
+        for(Issue i : issue) {
+            int issueNumber = i.getNumber();
+            issueWeights[key] = model.realVar("I"+ String.valueOf(key), 0.0, 1.0,0.05d);
+            mapping_issues.put(issueNumber, key++);
+        }
+
+        key = 0;
+        for(int i = 0; i < bids.getSize() - 1; i++) {
+            zvars[key] = model.realVar("I"+ String.valueOf(key), 0.0, 1.0,0.05d);
+        }
+
+
+       /* double [] variables = new double[(bids.getSize() - 1) + this.domain.getIssues().size()];
         Arrays.fill(variables, 0, bids.getSize() - 2, 1);
         LinearProgram lp = new LinearProgram(variables);
 
@@ -53,57 +73,63 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
         double [] previous_values = new double[this.domain.getIssues().size()];
         double [] values_issue = new double[this.domain.getIssues().size()];
         double [] weights = new double[this.domain.getIssues().size()];
-        double [] vars = new double [(bids.getSize() - 1) + this.domain.getIssues().size()];
+        double [] vars = new double [(bids.getSize() - 1) + this.domain.getIssues().size()];*/
+
+        double [] previous_values = new double[this.domain.getIssues().size()];
+        double [] values_issue = new double[this.domain.getIssues().size()];
+        double [] weights = new double[this.domain.getIssues().size()];
+
+       int k = 0;
 
         for(Bid b: bids.getBidOrder()) {
             int j = 0;
             for(Issue i: b.getIssues()) {
                 Evaluator evaluator = u.getEvaluator(i);
+                int issueNumber = i.getNumber();
                 double value = evaluator.getEvaluation(u, b, i.getNumber());
-                vars[j + (bids.getSize() - 1)] = value;
-                lp.addConstraint(new LinearBiggerThanEqualsConstraint(vars, 0.0, "c" + String.valueOf(constraints++)));
-                vars[j + (bids.getSize() - 1)] = 0.0;
-
-                values_issue[j++] = value;
+                values_issue[mapping_issues.get(issueNumber)] = value;
             }
 
 
 
             if(k > 0) {
-                for(int c = 0; c < values_issue.length; c++) {
-                    weights[c] = values_issue[c] - previous_values[c];
+                for(Issue i: issue) {
+                    int issueNumber = i.getNumber();
+                    Integer map_key = mapping_issues.get(issueNumber);
+                    weights[map_key] = values_issue[map_key] - previous_values[map_key];
                 }
 
-                System.arraycopy(slacks, 0, vars, 0, (bids.getSize() - 1));
-                System.arraycopy(weights, 0, vars, (bids.getSize() - 1), this.domain.getIssues().size());
 
-                System.arraycopy(slacks, 0, vars, 0, (bids.getSize() - 1));
-                System.arraycopy(weightszero, 0, vars, (bids.getSize() - 1), this.domain.getIssues().size());
+                //System.arraycopy(slacks, 0, vars, 0, (bids.getSize() - 1));
+                //System.arraycopy(weights, 0, vars, (bids.getSize() - 1), this.domain.getIssues().size());
 
-                lp.addConstraint(new LinearBiggerThanEqualsConstraint(vars, 0.0, "c" + String.valueOf(constraints++)));
-                lp.addConstraint(new LinearBiggerThanEqualsConstraint(vars, 0.0, "c" + String.valueOf(constraints++)));
+                //System.arraycopy(slacks, 0, vars, 0, (bids.getSize() - 1));
+                //System.arraycopy(weightszero, 0, vars, (bids.getSize() - 1), this.domain.getIssues().size());
+
+                //lp.addConstraint(new LinearBiggerThanEqualsConstraint(vars, 0.0, "c" + String.valueOf(constraints++)));
+                //lp.addConstraint(new LinearBiggerThanEqualsConstraint(vars, 0.0, "c" + String.valueOf(constraints++)));
 
             }
 
             if(k == bids.getSize() - 1) {
-                System.arraycopy(zzero, 0, vars, 0, (bids.getSize() - 1));
-                System.arraycopy(values_issue, 0, vars, (bids.getSize() - 1), this.domain.getIssues().size());
+                //System.arraycopy(zzero, 0, vars, 0, (bids.getSize() - 1));
+                //System.arraycopy(values_issue, 0, vars, (bids.getSize() - 1), this.domain.getIssues().size());
 
-                lp.addConstraint(new LinearEqualsConstraint(vars, 1.0, "c" + String.valueOf(constraints++)));
+                //lp.addConstraint(new LinearEqualsConstraint(vars, 1.0, "c" + String.valueOf(constraints++)));
             }
 
-            variables[k] = 0;
-            variables[k++] = 1;
+            //variables[k] = 0;
+            //variables[k++] = 1;
 
             for(int c = 0; c < values_issue.length; c++) {
-                previous_values[c] = values_issue[c];
+                //previous_values[c] = values_issue[c];
             }
 
         }
 
-        LinearProgramSolver solver  = SolverFactory.newDefault();
-        double[] sol = solver.solve(lp);
-        System.out.println("Finished");
+        //LinearProgramSolver solver  = SolverFactory.newDefault();
+        //double[] sol = solver.solve(lp);
+        //System.out.println("Finished+++++++");
 
     }
 

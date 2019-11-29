@@ -1,5 +1,8 @@
 package group13;
 
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.List;
 
 import genius.core.AgentID;
@@ -11,6 +14,8 @@ import genius.core.actions.Offer;
 import genius.core.parties.AbstractNegotiationParty;
 import genius.core.parties.NegotiationInfo;
 import genius.core.uncertainty.BidRanking;
+import genius.core.uncertainty.ExperimentalUserModel;
+import genius.core.utility.UncertainAdditiveUtilitySpace;
 
 /**
  * ExampleAgent returns the bid that maximizes its own utility for half of the negotiation session.
@@ -23,19 +28,25 @@ public class Agent13 extends AbstractNegotiationParty {
     private Bid lastReceivedOffer;
     private Bid myLastOffer;
     private OpponentModelling opponent;
+    private UncertaintyModelling factory;
+    ExperimentalUserModel e = ( ExperimentalUserModel ) userModel ;
+    UncertainAdditiveUtilitySpace realUSpace;
 
     @Override
     public void init(NegotiationInfo info) {
         super.init(info);
+
+        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+
         Domain domain = getDomain();
 
         if (hasPreferenceUncertainty()) {
-            //UncertaintyModelling factory = new UncertaintyModelling(domain);
-            //BidRanking bidRanking = userModel.getBidRanking();
-
-            //factory.UncertaintyEstimation(bidRanking);
-
+            this.factory = new UncertaintyModelling(domain);
+            //realUSpace = e. getRealUtilitySpace();
             this.opponent = new OpponentModelling(domain);
+
+            BidRanking bidRanking = userModel.getBidRanking();
+            this.factory.UncertaintyEstimation(bidRanking);
         }
 
     }
@@ -92,9 +103,6 @@ public class Agent13 extends AbstractNegotiationParty {
             lastReceivedOffer = offer.getBid();
 
             double predictedUtility = this.opponent.updateFrequency(lastReceivedOffer);
-            System.out.println(lastReceivedOffer);
-            System.out.println(predictedUtility);
-            System.out.println("---------");
         }
     }
 

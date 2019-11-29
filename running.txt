@@ -1,0 +1,1 @@
+java -cp libs/GLPKSolverPack.jar:libs/SCPSolver.jar:genius/genius-9.1.12.jar genius.Application negotiation.xml
