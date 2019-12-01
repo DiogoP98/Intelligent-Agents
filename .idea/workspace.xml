@@ -2,16 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="add49c30-608a-4caf-88e1-efdc17207919" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/libs/choco-solver-4.10.2-no-dep.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/choco-solver-4.10.2-sources.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/choco-solver-4.10.2.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/SCPSolver.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GLPKSolverPack.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Intelligent-Agents.iml" beforeDir="false" afterPath="$PROJECT_DIR$/Intelligent-Agents.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SCPSolver.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/group13/Agent13.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/group13/Agent13.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/etc/templates/partydomain/party2_utility.xml" beforeDir="false" afterPath="$PROJECT_DIR$/etc/templates/partydomain/party2_utility.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/running.txt" beforeDir="false" afterPath="$PROJECT_DIR$/running.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/group13/MyPropagator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/group13/MyPropagator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/group13/OpponentModelling.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/group13/OpponentModelling.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/group13/UncertaintyModelling.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/group13/UncertaintyModelling.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/group13/test.java" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -122,7 +119,9 @@
       <workItem from="1574536927130" duration="13000" />
       <workItem from="1574606295807" duration="9474000" />
       <workItem from="1574878313126" duration="4578000" />
-      <workItem from="1574954618437" duration="8714000" />
+      <workItem from="1574954618437" duration="11563000" />
+      <workItem from="1575123262926" duration="4471000" />
+      <workItem from="1575128718839" duration="4119000" />
     </task>
     <servers />
   </component>

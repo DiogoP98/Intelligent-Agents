@@ -1,1 +1,1 @@
-java -cp libs/GLPKSolverPack.jar:libs/SCPSolver.jar:genius/genius-9.1.12.jar genius.Application negotiation.xml
+java -cp libs/choco-solver-4.10.2.jar:libs/choco-solver-4.10.2-no-dep.jar:libs/choco-solver-4.10.2-sources.jar:genius/genius-9.1.12.jar genius.Application

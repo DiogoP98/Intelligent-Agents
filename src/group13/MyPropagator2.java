@@ -8,7 +8,7 @@ import org.chocosolver.solver.variables.events.RealEventType;
 import org.chocosolver.solver.constraints.PropagatorPriority;
 import org.chocosolver.util.ESat;
 
-public class MyPropagator extends Propagator<RealVar> {
+public class MyPropagator2 extends Propagator<RealVar> {
     /**
      * The constant the sum cannot be smaller than
      */
@@ -16,12 +16,12 @@ public class MyPropagator extends Propagator<RealVar> {
     final double [] weights;
 
     /**
-     * Constructor of the specific sum propagator : x1*w1 + x2*w2 + ... + xn*wn >= b
+     * Constructor of the specific sum propagator : x1*w1 + x2*w2 + ... + xn*wn = b
      *
      * @param x array of integer variables
      * @param b a constant
      */
-    public MyPropagator(RealVar[] x, double [] weights, double b) {
+    public MyPropagator2(RealVar[] x, double [] weights, double b) {
         super(x, PropagatorPriority.LINEAR, false);
         this.b = b;
         this.weights = new double[weights.length];
@@ -38,22 +38,33 @@ public class MyPropagator extends Propagator<RealVar> {
 
     @Override
     public void propagate(int evtmask) throws ContradictionException {
-        double sumUB = 0;
+        double sumUB = 0, sumLB = 0;
         int indx = 0;
         for (RealVar var : vars) {
             sumUB += var.getUB() * this.weights[indx];
             indx++;
         }
-        double F = sumUB;
-        System.out.println("here");
-        if (F <= 0) {
+        double F = b - sumUB;
+        if (F != 0) {
             fails();
         }
+
+        indx = 0;
+        for (RealVar var : vars) {
+            sumLB += var.getLB() * this.weights[indx];
+            indx++;
+        }
+
+        F = b - sumLB;
+        if (F != 0) {
+            fails();
+        }
+
         for (RealVar var : vars) {
             double lb = var.getLB();
             double ub = var.getUB();
-            if (ub - lb > F) {
-                var.updateUpperBound(F + lb, this);
+            if (ub - lb != F) {
+                var.updateLowerBound(ub, this);
             }
         }
     }
@@ -67,10 +78,10 @@ public class MyPropagator extends Propagator<RealVar> {
             sumUB += var.getUB() * this.weights[indx];
             indx++;
         }
-        if (sumLB >= b) {
+        if (sumLB == b) {
             return ESat.TRUE;
         }
-        if (sumUB < b) {
+        if (sumUB != b) {
             return ESat.FALSE;
         }
         return ESat.UNDEFINED;
