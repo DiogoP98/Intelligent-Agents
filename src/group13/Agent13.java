@@ -3,7 +3,7 @@ package group13;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.util.List;
+import java.util.*;
 
 import genius.core.AgentID;
 import genius.core.Bid;
@@ -15,6 +15,7 @@ import genius.core.parties.AbstractNegotiationParty;
 import genius.core.parties.NegotiationInfo;
 import genius.core.uncertainty.BidRanking;
 import genius.core.uncertainty.ExperimentalUserModel;
+import genius.core.utility.AdditiveUtilitySpace;
 import genius.core.utility.UncertainAdditiveUtilitySpace;
 
 /**
@@ -24,10 +25,13 @@ import genius.core.utility.UncertainAdditiveUtilitySpace;
  */
 public class Agent13 extends AbstractNegotiationParty {
     private final String description = "It's changing";
-
+    private double bestBidUtility;
+    private double worstBidUtility;
     private Bid lastReceivedOffer;
     private Bid myLastOffer;
-    private OpponentModelling opponent;
+    private OpponentModel opponent;
+    private final Map<AgentID, OpponentModel> opponentsModels = new HashMap<>();
+    private final double concessionRate = 0.3;
     private UncertaintyModelling factory;
     ExperimentalUserModel e = ( ExperimentalUserModel ) userModel ;
     UncertainAdditiveUtilitySpace realUSpace;
@@ -37,20 +41,30 @@ public class Agent13 extends AbstractNegotiationParty {
         super.init(info);
 
         System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-
         Domain domain = getDomain();
 
         if (hasPreferenceUncertainty()) {
             this.factory = new UncertaintyModelling(domain);
             //realUSpace = e. getRealUtilitySpace();
-            this.opponent = new OpponentModelling(domain);
+            this.opponent = new OpponentModel(domain);
 
             BidRanking bidRanking = userModel.getBidRanking();
+            Bid worstBid = bidRanking.getMinimalBid();
+            worstBidUtility = this.utilitySpace.getUtility(worstBid);
+            Bid bestBid = bidRanking.getMaximalBid();
+            bestBidUtility = this.utilitySpace.getUtility(bestBid);
             this.factory.UncertaintyEstimation(bidRanking);
         }
 
     }
 
+    private double getOpponentScore(Bid bid){
+        double score = 0;
+        for(OpponentModel model : opponentsModels.values()){
+            score += model.updateFrequency(bid);
+        }
+        return score;
+    }
     /**
      * When this function is called, it is expected that the Party chooses one of the actions from the possible
      * action list and returns an instance of the chosen action.
@@ -71,13 +85,12 @@ public class Agent13 extends AbstractNegotiationParty {
         if (time < 0.5) {
             return new Offer(this.getPartyId(), this.getMaxUtilityBid());
         } else {
-
+            double utilityThreshold = getUtilityThreshold();
             // Accepts the bid on the table in this phase,
             // if the utility of the bid is higher than Example Agent's last bid.
             if (lastReceivedOffer != null
                     && myLastOffer != null
-                    && this.utilitySpace.getUtility(lastReceivedOffer) > this.utilitySpace.getUtility(myLastOffer)) {
-
+                    && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold) {
                 return new Accept(this.getPartyId(), lastReceivedOffer);
             } else {
                 // Offering a random bid
@@ -106,10 +119,7 @@ public class Agent13 extends AbstractNegotiationParty {
         }
     }
 
-    /**
-     * A human-readable description for this party.
-     * @return
-     */
+
     @Override
     public String getDescription() {
         return description;
@@ -122,5 +132,18 @@ public class Agent13 extends AbstractNegotiationParty {
             e.printStackTrace();
         }
         return null;
+    }
+
+
+    public double getUtilityThreshold(){
+        return worstBidUtility - (worstBidUtility - bestBidUtility) * Math.pow(getTimeLine().getTime(), 1 / concessionRate); // no idea why it's calculated this way
+    }
+
+
+    public Bid pickRandomBid(Set<Bid> bidSet){
+        List<Bid> list = new ArrayList<Bid>(bidSet.size());
+        list.addAll(bidSet);
+        Collections.shuffle(list);
+        return list.get(0);
     }
 }
