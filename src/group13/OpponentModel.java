@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class OpponentModelling {
+public class OpponentModel {
     private Domain d;
     private HashMap<Integer, Integer> mapping_issues = new HashMap<Integer, Integer>();
     private HashMap<String, Integer> mapping_values = new HashMap<String, Integer>();
@@ -18,7 +18,7 @@ public class OpponentModelling {
     private Double[] weights;
     private int numberOfBids;
 
-    public OpponentModelling(Domain d) {
+    public OpponentModel(Domain d) {
         this.d = d;
 
         buildData();

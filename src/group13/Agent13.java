@@ -32,6 +32,7 @@ public class Agent13 extends AbstractNegotiationParty {
     private OpponentModel opponent;
     private final Map<AgentID, OpponentModel> opponentsModels = new HashMap<>();
     private final double concessionRate = 0.3;
+    private final Random randomGenerator = new Random();
     private UncertaintyModelling factory;
     ExperimentalUserModel e = ( ExperimentalUserModel ) userModel ;
     UncertainAdditiveUtilitySpace realUSpace;
@@ -65,6 +66,37 @@ public class Agent13 extends AbstractNegotiationParty {
         }
         return score;
     }
+
+
+    public Set<Bid> generateBids(double threshold, int noOfBids, int limit){
+        Set<Bid> result = new HashSet<>();
+        result.add(this.getMaxUtilityBid()); // propose the best bid
+
+        if(threshold > worstBidUtility || threshold < bestBidUtility){
+            return  result;
+        }
+
+        // stop if we spend 1/10 of allowed time without finding anything
+        int deadLimit = limit/10;
+        int count = 0;
+        int limitCount = 0;
+
+        do{
+            Bid randomBid = generateRandomBid();
+            if(this.utilitySpace.getUtility(randomBid)>= threshold){
+                if(!result.contains(randomBid)){
+                    deadLimit = -1;
+                }
+                result.add(randomBid);
+            }
+            count++;
+            limitCount++;
+        } while (result.size() < noOfBids && count < limit && limitCount < deadLimit);
+
+        return result;
+    }
+
+
     /**
      * When this function is called, it is expected that the Party chooses one of the actions from the possible
      * action list and returns an instance of the chosen action.
@@ -82,7 +114,7 @@ public class Agent13 extends AbstractNegotiationParty {
 
 
         // First half of the negotiation offering the max utility (the best agreement possible) for Example Agent
-        if (time < 0.5) {
+        if (time < 0.2) {
             return new Offer(this.getPartyId(), this.getMaxUtilityBid());
         } else {
             double utilityThreshold = getUtilityThreshold();
@@ -92,10 +124,17 @@ public class Agent13 extends AbstractNegotiationParty {
                     && myLastOffer != null
                     && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold) {
                 return new Accept(this.getPartyId(), lastReceivedOffer);
+            }
+
+            // Generate random bids above threshold
+            Set<Bid> bidSet = this.generateBids(utilityThreshold, 30, 10000);
+
+            if(randomGenerator.nextDouble() <= 0.05) { // randomly bid .5% chance of doing that
+                return new Offer(this.getPartyId(), pickRandomBid(bidSet));
             } else {
-                // Offering a random bid
-                myLastOffer = generateRandomBid();
-                return new Offer(this.getPartyId(), myLastOffer);
+                // java did some weird shit to it, it's basically saying from bidset, compare and get the best one
+                Bid bestBid = Collections.max(bidSet, Comparator.comparingDouble(this::getOpponentScore));
+                return new Offer(this.getPartyId(), bestBid);
             }
         }
     }
