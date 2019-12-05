@@ -72,7 +72,7 @@ public class Agent13 extends AbstractNegotiationParty {
         Set<Bid> result = new HashSet<>();
         result.add(this.getMaxUtilityBid()); // propose the best bid
 
-        if(threshold > worstBidUtility || threshold < bestBidUtility){
+        if(threshold < worstBidUtility || threshold > bestBidUtility){
             return  result;
         }
 
@@ -151,10 +151,12 @@ public class Agent13 extends AbstractNegotiationParty {
         if (act instanceof Offer) { // sender is making an offer
             Offer offer = (Offer) act;
 
+            opponentsModels.putIfAbsent(sender, new OpponentModel(getDomain()));
+            opponentsModels.get(sender).updateFrequency(offer.getBid());
             // storing last received offer
             lastReceivedOffer = offer.getBid();
 
-            double predictedUtility = this.opponent.updateFrequency(lastReceivedOffer);
+
         }
     }
 
