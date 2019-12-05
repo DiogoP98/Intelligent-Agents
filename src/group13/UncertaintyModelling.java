@@ -40,8 +40,6 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
         List<Bid> Bids = bids.getBidOrder();
         double lowerUtility = bids.getLowUtility();
         double higherUtility = bids.getHighUtility();
-        estimateUsingBidRanks(bids);
-
 
         LP(Bids, lowerUtility, higherUtility);
 
@@ -118,7 +116,6 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
 
         int pos = slackvars;
         for(Issue issue: issues) {
-            int issueNumber = issue.getNumber();
             IssueDiscrete issueD = (IssueDiscrete) issue;
             for(ValueDiscrete valueD: issueD.getValues()) {
                 setUtility(issue, valueD, solution.getPoint()[pos]);
@@ -138,12 +135,10 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
             IssueDiscrete issueD = (IssueDiscrete) issue;
 
             ValueDiscrete v = (ValueDiscrete) b.getValue(issueNumber);
-            double value = evaluator.getEvaluation(u, b, issueNumber);
 
             int index = numberSlacks;
             int key = mapping_issues.get(issueNumber);
             //get the number of issues before this, and respective number of values
-            //values[key] = value;
             for(int issues = 0; issues < key; issues++)
                 index += this.number_values_per_issue.get(issues);
 
