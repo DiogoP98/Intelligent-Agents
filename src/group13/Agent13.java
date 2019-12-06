@@ -62,7 +62,7 @@ public class Agent13 extends AbstractNegotiationParty {
     private double getOpponentScore(Bid bid){
         double score = 0;
         for(OpponentModel model : opponentsModels.values()){
-            score += model.updateFrequency(bid);
+            score += model.getValue(bid);
         }
         return score;
     }
@@ -112,9 +112,8 @@ public class Agent13 extends AbstractNegotiationParty {
         // The time is normalized, so agents need not be
         // concerned with the actual internal clock.
 
-
         // First half of the negotiation offering the max utility (the best agreement possible) for Example Agent
-        if (time < 0.2) {
+        if (time < 0.1) {
             return new Offer(this.getPartyId(), this.getMaxUtilityBid());
         } else {
             double utilityThreshold = getUtilityThreshold();
@@ -127,9 +126,9 @@ public class Agent13 extends AbstractNegotiationParty {
             }
 
             // Generate random bids above threshold
-            Set<Bid> bidSet = this.generateBids(utilityThreshold, 30, 10000);
+            Set<Bid> bidSet = this.generateBids(utilityThreshold, 100, 20000);
 
-            if(randomGenerator.nextDouble() <= 0.05) { // randomly bid .5% chance of doing that
+            if(randomGenerator.nextDouble() <= 0.03) { // randomly bid .5% chance of doing that
                 return new Offer(this.getPartyId(), pickRandomBid(bidSet));
             } else {
                 // java did some weird shit to it, it's basically saying from bidset, compare and get the best one
@@ -160,7 +159,6 @@ public class Agent13 extends AbstractNegotiationParty {
         }
     }
 
-
     @Override
     public String getDescription() {
         return description;
@@ -177,7 +175,7 @@ public class Agent13 extends AbstractNegotiationParty {
 
 
     public double getUtilityThreshold(){
-        return worstBidUtility - (worstBidUtility - bestBidUtility) * Math.pow(getTimeLine().getTime(), 1 / concessionRate); // no idea why it's calculated this way
+        return bestBidUtility - (bestBidUtility - worstBidUtility) * Math.pow(getTimeLine().getTime(), 1 / concessionRate);
     }
 
 
