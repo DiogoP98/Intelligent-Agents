@@ -24,6 +24,23 @@ public class OpponentModel {
         buildData();
     }
 
+    public Double getValue(Bid b) {
+        List<Issue> issues = b.getIssues();
+        double utility = 0;
+
+        for(Issue i: issues) {
+            int issueNumber = i.getNumber();
+            Integer issueKey = this.mapping_issues.get(issueNumber);
+            ValueDiscrete v = (ValueDiscrete) b.getValue(issueNumber);
+            Integer valueKey = this.mapping_values.get(v.toString() + String.valueOf(issueNumber));
+
+            double value = getValuesOfOption(issueKey, valueKey);
+            utility += this.weights[issueKey] * value;
+        }
+
+        return utility;
+    }
+
     public Double updateFrequency(Bid b) {
         this.numberOfBids += 1;
         List<Issue> issues = b.getIssues();
@@ -40,9 +57,7 @@ public class OpponentModel {
             this.frequency[issueKey][valueKey] += 1;
         }
 
-        double utility = updateOpponentModel(issues, valuesUsed);
-
-        return utility;
+        return updateOpponentModel(issues, valuesUsed);
     }
 
     private double updateOpponentModel(List<Issue> issues, Integer[] valuesUsed) {
@@ -63,7 +78,7 @@ public class OpponentModel {
             int issueNumber = i.getNumber();
             IssueDiscrete issueDiscrete = (IssueDiscrete) i;
 
-            Integer issueKey =this.mapping_issues.get(issueNumber);
+            Integer issueKey = this.mapping_issues.get(issueNumber);
 
             PredictedValueOfOption[issueKey] = getValuesOfOption(issueKey, valuesUsed[issueKey]);
 

@@ -21,6 +21,7 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
     private final Domain domain;
     private HashMap<Integer, Integer> mapping_issues = new HashMap<>();
     HashMap<Integer, Integer> number_values_per_issue = new HashMap<>();
+    int threshold;
 
     AdditiveUtilitySpace u;
     /**
@@ -32,6 +33,7 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
     public UncertaintyModelling(Domain d) {
         super(d);
         this.domain = d;
+        this.threshold = 6000;
     }
 
     public void UncertaintyEstimation(BidRanking bids) {
@@ -40,13 +42,6 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
         List<Bid> Bids = bids.getBidOrder();
         double lowerUtility = bids.getLowUtility();
         double higherUtility = bids.getHighUtility();
-
-        LP(Bids, lowerUtility, higherUtility);
-
-    }
-
-    private void LP(List<Bid> Bids, double lowerUtility, double higherUtility) {
-        this.u = getUtilitySpace();
 
         List<Issue> issues = this.getDomain().getIssues();
 
@@ -57,9 +52,34 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
             IssueDiscrete issueD = (IssueDiscrete) issue;
             int nvalues_issue = issueD.getValues().size();
             this.number_values_per_issue.put(key,nvalues_issue);
-            mapping_issues.put(issueNumber, key++);
+            this.mapping_issues.put(issueNumber, key++);
             vars += nvalues_issue;
         }
+
+        if(vars * Bids.size() <= this.threshold)
+            LP(Bids, vars, lowerUtility, higherUtility, issues);
+        else
+            heuristic_calculation(Bids);
+
+    }
+
+    private void heuristic_calculation(List<Bid> Bids) {
+        double points = 0;
+        for (Bid b : Bids){
+            List<Issue> issues = b.getIssues();
+            for (Issue i : issues){
+                int no = i.getNumber();
+                ValueDiscrete v = (ValueDiscrete) b.getValue(no);
+                double oldUtil = getUtility(i, v);
+                setUtility(i, v, oldUtil + points);
+            }
+            points++;
+        }
+        normalizeWeights();
+    }
+
+    private void LP(List<Bid> Bids, int vars, double lowerUtility, double higherUtility, List<Issue> issues) {
+        this.u = getUtilitySpace();
 
         //add the number of slack variables
         int slackvars = Bids.size() - 1;
@@ -88,9 +108,8 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
             double [] values_issue = get_values_bid(b, slackvars, vars);
 
             //constraint the lowest value bid to have the same value as the given one
-            if(k == 0) {
+            if(k == 0)
                 constraints.add(new LinearConstraint(values_issue, Relationship.EQ, lowerUtility));
-            }
             else {
                 for(int pos = 0; pos < vars; pos++)
                     variables[pos] = values_issue[pos] - previous_values[pos];
