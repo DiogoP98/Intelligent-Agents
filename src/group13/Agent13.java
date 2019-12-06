@@ -24,18 +24,19 @@ import genius.core.utility.UncertainAdditiveUtilitySpace;
  * if the utility of the bid is higher than Example Agent's last bid.
  */
 public class Agent13 extends AbstractNegotiationParty {
-    private final String description = "It's changing";
+    private final String description = "Winter is upon you";
     private double bestBidUtility;
     private double worstBidUtility;
     private Bid lastReceivedOffer;
     private Bid myLastOffer;
     private OpponentModel opponent;
     private final Map<AgentID, OpponentModel> opponentsModels = new HashMap<>();
-    private final double concessionRate = 0.3;
+    private double concessionRate = 0.09;
     private final Random randomGenerator = new Random();
     private UncertaintyModelling factory;
     ExperimentalUserModel e = ( ExperimentalUserModel ) userModel ;
     UncertainAdditiveUtilitySpace realUSpace;
+    private List<Double> bidHistory = new ArrayList<>();
 
     @Override
     public void init(NegotiationInfo info) {
@@ -106,6 +107,7 @@ public class Agent13 extends AbstractNegotiationParty {
      */
     @Override
     public Action chooseAction(List<Class<? extends Action>> list) {
+        List <Double> last30Bids;
         // According to Stacked Alternating Offers Protocol list includes
         // Accept, Offer and EndNegotiation actions only.
         double time = getTimeLine().getTime(); // Gets the time, running from t = 0 (start) to t = 1 (deadline).
@@ -117,6 +119,23 @@ public class Agent13 extends AbstractNegotiationParty {
             return new Offer(this.getPartyId(), this.getMaxUtilityBid());
         } else {
             double utilityThreshold = getUtilityThreshold();
+
+            if(time > 0.9 && lastReceivedOffer != null){
+                if(bidHistory.size() > 30){
+                    last30Bids = bidHistory.subList(bidHistory.size() - 30, bidHistory.size() - 2);
+                } else {
+                    last30Bids = bidHistory.subList(0, bidHistory.size() - 2);
+                }
+
+                boolean sudden = suddenOpponentConcession(last30Bids, this.utilitySpace.getUtility(lastReceivedOffer));
+
+                if(sudden && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold){
+                    System.out.println("THEY DROPPED!");
+                    return new Accept(this.getPartyId(), lastReceivedOffer);
+                }
+            }
+
+
             // Accepts the bid on the table in this phase,
             // if the utility of the bid is higher than Example Agent's last bid.
             if (lastReceivedOffer != null
@@ -125,8 +144,10 @@ public class Agent13 extends AbstractNegotiationParty {
                 return new Accept(this.getPartyId(), lastReceivedOffer);
             }
 
+
+
             // Generate random bids above threshold
-            Set<Bid> bidSet = this.generateBids(utilityThreshold, 100, 20000);
+            Set<Bid> bidSet = this.generateBids(utilityThreshold, 500, 20000);
 
             if(randomGenerator.nextDouble() <= 0.03) { // randomly bid .5% chance of doing that
                 return new Offer(this.getPartyId(), pickRandomBid(bidSet));
@@ -154,7 +175,9 @@ public class Agent13 extends AbstractNegotiationParty {
             opponentsModels.get(sender).updateFrequency(offer.getBid());
             // storing last received offer
             lastReceivedOffer = offer.getBid();
-
+            if(getTimeLine().getTime() > 0.85){
+                bidHistory.add(this.utilitySpace.getUtility(lastReceivedOffer));
+            }
 
         }
     }
@@ -178,6 +201,29 @@ public class Agent13 extends AbstractNegotiationParty {
         return bestBidUtility - (bestBidUtility - worstBidUtility) * Math.pow(getTimeLine().getTime(), 1 / concessionRate);
     }
 
+    public double[] getStandardDeviation(List<Double> arr){
+        double [] ret = {0.0, 0.0};
+        double sum = 0.0, standardDeviation = 0.0;
+        int length = arr.size();
+        for(double num : arr) {
+            sum += num;
+        }
+        double mean = sum/length;
+        for(double num: arr) {
+            standardDeviation += Math.pow(num - mean, 2);
+        }
+        ret[0] = mean;
+        ret[1] = Math.sqrt(standardDeviation/length);
+
+        return ret;
+    }
+
+
+    public boolean suddenOpponentConcession(List<Double> arr, double val){
+        double [] std = getStandardDeviation(arr);
+        double sig3 = std[1] * 3; // std * 3
+        return val > (sig3 + std[0]); // 3sig + mean
+    }
 
     public Bid pickRandomBid(Set<Bid> bidSet){
         List<Bid> list = new ArrayList<Bid>(bidSet.size());
