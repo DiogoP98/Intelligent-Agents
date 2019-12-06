@@ -31,7 +31,7 @@ public class Agent13 extends AbstractNegotiationParty {
     private Bid myLastOffer;
     private OpponentModel opponent;
     private final Map<AgentID, OpponentModel> opponentsModels = new HashMap<>();
-    private double concessionRate = 0.09;
+    private double concessionRate = 1;
     private final Random randomGenerator = new Random();
     private UncertaintyModelling factory;
     ExperimentalUserModel e = ( ExperimentalUserModel ) userModel ;
@@ -107,7 +107,8 @@ public class Agent13 extends AbstractNegotiationParty {
      */
     @Override
     public Action chooseAction(List<Class<? extends Action>> list) {
-        List <Double> last30Bids;
+        List <Double> lastNBids;
+        int n = 30;
         // According to Stacked Alternating Offers Protocol list includes
         // Accept, Offer and EndNegotiation actions only.
         double time = getTimeLine().getTime(); // Gets the time, running from t = 0 (start) to t = 1 (deadline).
@@ -118,16 +119,20 @@ public class Agent13 extends AbstractNegotiationParty {
         if (time < 0.1) {
             return new Offer(this.getPartyId(), this.getMaxUtilityBid());
         } else {
+            if (time > 0.3) concessionRate = 0.17;
+            if (time > 0.9) concessionRate = 0.27;
+            if (time > 0.95) concessionRate = 0.32;
+
             double utilityThreshold = getUtilityThreshold();
 
             if(time > 0.9 && lastReceivedOffer != null){
-                if(bidHistory.size() > 30){
-                    last30Bids = bidHistory.subList(bidHistory.size() - 30, bidHistory.size() - 2);
+                if(bidHistory.size() > n){
+                    lastNBids = bidHistory.subList(bidHistory.size() - n, bidHistory.size() - 2);
                 } else {
-                    last30Bids = bidHistory.subList(0, bidHistory.size() - 2);
+                    lastNBids = bidHistory.subList(0, bidHistory.size() - 2);
                 }
 
-                boolean sudden = suddenOpponentConcession(last30Bids, this.utilitySpace.getUtility(lastReceivedOffer));
+                boolean sudden = suddenOpponentConcession(lastNBids, this.utilitySpace.getUtility(lastReceivedOffer));
 
                 if(sudden && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold){
                     System.out.println("THEY DROPPED!");
