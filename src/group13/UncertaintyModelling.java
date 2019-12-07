@@ -120,7 +120,7 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
                 this.setUtility(issue, valueDiscrete, mean);
             }
 
-            this.setWeight(issue, max_deviation);
+            this.setWeight(issue, 1 / max_deviation);
         }
 
         this.normalizeWeights();
