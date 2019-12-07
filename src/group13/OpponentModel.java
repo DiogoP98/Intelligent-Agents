@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class OpponentModelling {
+public class OpponentModel {
     private Domain d;
     private HashMap<Integer, Integer> mapping_issues = new HashMap<Integer, Integer>();
     private HashMap<String, Integer> mapping_values = new HashMap<String, Integer>();
@@ -18,10 +18,27 @@ public class OpponentModelling {
     private Double[] weights;
     private int numberOfBids;
 
-    public OpponentModelling(Domain d) {
+    public OpponentModel(Domain d) {
         this.d = d;
 
         buildData();
+    }
+
+    public Double getValue(Bid b) {
+        List<Issue> issues = b.getIssues();
+        double utility = 0;
+
+        for(Issue i: issues) {
+            int issueNumber = i.getNumber();
+            Integer issueKey = this.mapping_issues.get(issueNumber);
+            ValueDiscrete v = (ValueDiscrete) b.getValue(issueNumber);
+            Integer valueKey = this.mapping_values.get(v.toString() + String.valueOf(issueNumber));
+
+            double value = getValuesOfOption(issueKey, valueKey);
+            utility += this.weights[issueKey] * value;
+        }
+
+        return utility;
     }
 
     public Double updateFrequency(Bid b) {
@@ -40,25 +57,13 @@ public class OpponentModelling {
             this.frequency[issueKey][valueKey] += 1;
         }
 
-        System.out.println("Frequency: ");
-        for(int i = 0; i < this.frequency.length; i++)
-            System.out.println(Arrays.toString(this.frequency[i]));
-        System.out.println("------------");
-
-        double utility = updateOpponentModel(issues, valuesUsed);
-
-        return utility;
+        return updateOpponentModel(issues, valuesUsed);
     }
 
     private double updateOpponentModel(List<Issue> issues, Integer[] valuesUsed) {
         double [] predictedValues = updateWeightsAndOrder(issues, valuesUsed);
         double utility = 0;
 
-        System.out.println("Weights: ");
-        System.out.println(Arrays.toString(this.weights));
-        System.out.println("Predicted values: ");
-        System.out.println(Arrays.toString(predictedValues));
-        System.out.println("----------");
         for(int i = 0; i < issues.size(); i++)
             utility += this.weights[i]*predictedValues[i];
 
@@ -73,14 +78,13 @@ public class OpponentModelling {
             int issueNumber = i.getNumber();
             IssueDiscrete issueDiscrete = (IssueDiscrete) i;
 
-            Integer issueKey =this.mapping_issues.get(issueNumber);
+            Integer issueKey = this.mapping_issues.get(issueNumber);
 
             PredictedValueOfOption[issueKey] = getValuesOfOption(issueKey, valuesUsed[issueKey]);
 
             for(ValueDiscrete v: issueDiscrete.getValues()) {
                 Integer valueKey = this.mapping_values.get(v.toString() + String.valueOf(issueNumber));
                 Integer freq = this.frequency[issueKey][valueKey];
-                System.out.println("N BIDS: " + this.numberOfBids);
                 weightsIntermediate[issueKey] += (Math.pow(freq,2.0)) / (Math.pow(this.numberOfBids,2.0));
             }
         }
