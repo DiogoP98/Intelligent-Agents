@@ -30,7 +30,7 @@ public class Agent13 extends AbstractNegotiationParty {
     private Bid myLastOffer;
     private OpponentModel opponent;
     private final Map<AgentID, OpponentModel> opponentsModels = new HashMap<>();
-    private double concessionRate = 0.1;
+    private double concessionRate = 0.05;
     private final Random randomGenerator = new Random();
     private UncertaintyModelling factory;
     ExperimentalUserModel e = ( ExperimentalUserModel ) userModel ;
@@ -86,7 +86,7 @@ public class Agent13 extends AbstractNegotiationParty {
             Bid randomBid = generateRandomBid();
             double percent_diff = (this.utilitySpace.getUtility(myLastOffer) - this.utilitySpace.getUtility(randomBid))/this.utilitySpace.getUtility(myLastOffer);
 
-            if(this.utilitySpace.getUtility(randomBid)>= threshold && percent_diff < 0.1){
+            if(this.utilitySpace.getUtility(randomBid)>= threshold && percent_diff < 0.08){
                 if(!result.contains(randomBid)){
                     deadLimit = -1;
                 }
@@ -130,7 +130,7 @@ public class Agent13 extends AbstractNegotiationParty {
 //            if (time > 0.98) concessionRate = 0.01;
             double utilityThreshold = getUtilityThreshold();
 
-            if(time > 0.9 && lastReceivedOffer != null){
+            if(time > 0.65 && lastReceivedOffer != null){
                 try {
                     if(bidHistoryAgent.size() > n+1){
                         lastNAgentBids = bidHistoryAgent.subList(bidHistoryAgent.size() - n+1, bidHistoryAgent.size() - 2);
@@ -145,15 +145,15 @@ public class Agent13 extends AbstractNegotiationParty {
                     lastNOpponentBids = bidHistoryOpponent;
                 }
 
-                boolean suddenAgentIncrease = detectSuddenChange(lastNAgentBids, this.utilitySpace.getUtility(lastReceivedOffer), 5);
-                boolean suddenOpponentIncrease = detectSuddenChange(lastNOpponentBids, this.opponent.getValue(lastReceivedOffer), 7);
+                boolean suddenAgentIncrease = detectSuddenChange(lastNAgentBids, this.utilitySpace.getUtility(lastReceivedOffer), 5, "upper");
+                boolean suddenOpponentDecrease = detectSuddenChange(lastNOpponentBids, this.opponent.getValue(lastReceivedOffer), 5, "lower");
 
                 System.out.println(this.utilitySpace.getUtility(lastReceivedOffer) + " : " + utilityThreshold);
                 if(suddenAgentIncrease && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold){
                     System.out.println("We gained!");
                     return new Accept(this.getPartyId(), lastReceivedOffer);
                 }
-                if(suddenOpponentIncrease && this.opponent.getValue(lastReceivedOffer) >= utilityThreshold){
+                if(suddenOpponentDecrease && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold){
                     System.out.println("THEY DROPPED!");
                     System.out.println(this.opponent.getValue(lastReceivedOffer));
                     return new Accept(this.getPartyId(), lastReceivedOffer);
@@ -173,7 +173,7 @@ public class Agent13 extends AbstractNegotiationParty {
             // Generate random bids above threshold
             Set<Bid> bidSet = this.generateBids(utilityThreshold, 5000, 50000);
 
-            if(randomGenerator.nextDouble() <= 0.05) {
+            if(randomGenerator.nextDouble() <= 0.01) {
                 this.myLastOffer =  pickRandomBid(bidSet);
                 return new Offer(this.getPartyId(),this.myLastOffer);
             } else {
@@ -202,7 +202,7 @@ public class Agent13 extends AbstractNegotiationParty {
             this.opponent.updateFrequency(offer.getBid());
             // storing last received offer
             lastReceivedOffer = offer.getBid();
-            if(getTimeLine().getTime() > 0.87){
+            if(getTimeLine().getTime() > 0.57){
                 bidHistoryAgent.add(this.utilitySpace.getUtility(lastReceivedOffer));
                 bidHistoryOpponent.add(opponent.getValue(lastReceivedOffer));
             }
@@ -247,10 +247,14 @@ public class Agent13 extends AbstractNegotiationParty {
     }
 
 
-    public boolean detectSuddenChange(List<Double> arr, double val, int n){
+    public boolean detectSuddenChange(List<Double> arr, double val, int n, String bound){
         double [] std = getStandardDeviation(arr);
         double sigN = std[1] * n; // std * n
-        return val >= (sigN + std[0]); // 3sig + mean
+
+        if (bound.equals("upper")){
+            return val >= (sigN + std[0]); // 3sig + mean
+        }
+        return val <=(sigN - std[0]); // 3sig - mean
     }
 
     public Bid pickRandomBid(Set<Bid> bidSet){
