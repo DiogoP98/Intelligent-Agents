@@ -122,66 +122,71 @@ public class Agent13 extends AbstractNegotiationParty {
         // First half of the negotiation offering the max utility (the best agreement possible) for Example Agent
         if (time < 0.1) {
             this.myLastOffer = this.getMaxUtilityBid();
-            return new Offer(this.getPartyId(), this.getMaxUtilityBid());
+            return new Offer(this.getPartyId(), myLastOffer);
         } else {
 //            if (time > 0.3) concessionRate = 0.01;
 //            if (time > 0.5) concessionRate = 0.02;
 //            if (time > 0.95) concessionRate = 0.04;
 //            if (time > 0.98) concessionRate = 0.01;
-            double utilityThreshold = getUtilityThreshold();
 
-            if(time > 0.65 && lastReceivedOffer != null){
-                try {
-                    if(bidHistoryAgent.size() > n+1){
-                        lastNAgentBids = bidHistoryAgent.subList(bidHistoryAgent.size() - n+1, bidHistoryAgent.size() - 2);
-                        lastNOpponentBids = bidHistoryOpponent.subList(bidHistoryOpponent.size() - n+1, bidHistoryOpponent.size() - 2);
+            try {
+                double utilityThreshold = getUtilityThreshold();
+
+                if(time > 0.75 && lastReceivedOffer != null){
+                    try {
+                        if(bidHistoryAgent.size() > n+1){
+                            lastNAgentBids = bidHistoryAgent.subList(bidHistoryAgent.size() - n+1, bidHistoryAgent.size() - 2);
+                            lastNOpponentBids = bidHistoryOpponent.subList(bidHistoryOpponent.size() - n+1, bidHistoryOpponent.size() - 2);
+                        }
+                        else{
+                            lastNAgentBids = bidHistoryAgent.subList(0, bidHistoryAgent.size() - 2);
+                            lastNOpponentBids = bidHistoryOpponent.subList(0, bidHistoryOpponent.size() - 2);
+                        }
+                    } catch (Exception e){
+                        lastNAgentBids = bidHistoryAgent;
+                        lastNOpponentBids = bidHistoryOpponent;
                     }
-                    else{
-                        lastNAgentBids = bidHistoryAgent.subList(0, bidHistoryAgent.size() - 2);
-                        lastNOpponentBids = bidHistoryOpponent.subList(0, bidHistoryOpponent.size() - 2);
+
+                    boolean suddenAgentIncrease = detectSuddenChange(lastNAgentBids, this.utilitySpace.getUtility(lastReceivedOffer), 3, "upper");
+                    boolean suddenOpponentDecrease = detectSuddenChange(lastNOpponentBids, this.opponent.getValue(lastReceivedOffer), 3, "lower");
+
+//                System.out.println(this.utilitySpace.getUtility(lastReceivedOffer) + " : " + utilityThreshold);
+                    if(suddenAgentIncrease && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold){
+                        System.out.println("We gained!");
+                        return new Accept(this.getPartyId(), lastReceivedOffer);
                     }
-                } catch (Exception e){
-                    lastNAgentBids = bidHistoryAgent;
-                    lastNOpponentBids = bidHistoryOpponent;
+                    if(suddenOpponentDecrease && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold){
+                        System.out.println("THEY DROPPED!");
+                        System.out.println(this.opponent.getValue(lastReceivedOffer));
+                        return new Accept(this.getPartyId(), lastReceivedOffer);
+                    }
                 }
-
-                boolean suddenAgentIncrease = detectSuddenChange(lastNAgentBids, this.utilitySpace.getUtility(lastReceivedOffer), 5, "upper");
-                boolean suddenOpponentDecrease = detectSuddenChange(lastNOpponentBids, this.opponent.getValue(lastReceivedOffer), 5, "lower");
-
-                System.out.println(this.utilitySpace.getUtility(lastReceivedOffer) + " : " + utilityThreshold);
-                if(suddenAgentIncrease && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold){
-                    System.out.println("We gained!");
+                // Accepts the bid on the table in this phase,
+                // if the utility of the bid is higher than Example Agent's last bid.
+                if (lastReceivedOffer != null
+                        && myLastOffer != null
+                        && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold) {
                     return new Accept(this.getPartyId(), lastReceivedOffer);
                 }
-                if(suddenOpponentDecrease && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold){
-                    System.out.println("THEY DROPPED!");
-                    System.out.println(this.opponent.getValue(lastReceivedOffer));
-                    return new Accept(this.getPartyId(), lastReceivedOffer);
+
+
+                // Generate random bids above threshold
+                Set<Bid> bidSet = this.generateBids(utilityThreshold, 5000, 50000);
+
+                if(randomGenerator.nextDouble() <= 0.01) {
+                    this.myLastOffer =  pickRandomBid(bidSet);
+                    return new Offer(this.getPartyId(),this.myLastOffer);
+                } else {
+                    // java did some weird shit to it, it's basically saying from bidset, compare and get the best one
+                    Bid bestBid = Collections.max(bidSet, Comparator.comparingDouble(this::getOpponentScore));
+                    this.myLastOffer = bestBid;
+                    return new Offer(this.getPartyId(), bestBid);
                 }
+            } catch (Exception e){
+                this.myLastOffer = this.getMaxUtilityBid();
+                return new Offer(this.getPartyId(), this.myLastOffer);
             }
 
-
-            // Accepts the bid on the table in this phase,
-            // if the utility of the bid is higher than Example Agent's last bid.
-            if (lastReceivedOffer != null
-                    && myLastOffer != null
-                    && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold) {
-                return new Accept(this.getPartyId(), lastReceivedOffer);
-            }
-
-
-            // Generate random bids above threshold
-            Set<Bid> bidSet = this.generateBids(utilityThreshold, 5000, 50000);
-
-            if(randomGenerator.nextDouble() <= 0.01) {
-                this.myLastOffer =  pickRandomBid(bidSet);
-                return new Offer(this.getPartyId(),this.myLastOffer);
-            } else {
-                // java did some weird shit to it, it's basically saying from bidset, compare and get the best one
-                Bid bestBid = Collections.max(bidSet, Comparator.comparingDouble(this::getOpponentScore));
-                this.myLastOffer = bestBid;
-                return new Offer(this.getPartyId(), bestBid);
-            }
         }
     }
 
@@ -202,9 +207,9 @@ public class Agent13 extends AbstractNegotiationParty {
             this.opponent.updateFrequency(offer.getBid());
             // storing last received offer
             lastReceivedOffer = offer.getBid();
-            if(getTimeLine().getTime() > 0.57){
+            if(getTimeLine().getTime() > 0.65){
                 bidHistoryAgent.add(this.utilitySpace.getUtility(lastReceivedOffer));
-                bidHistoryOpponent.add(opponent.getValue(lastReceivedOffer));
+                bidHistoryOpponent.add(this.opponent.getValue(lastReceivedOffer));
             }
 
         }
