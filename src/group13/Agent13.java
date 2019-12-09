@@ -3,6 +3,7 @@ package group13;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 import genius.core.AgentID;
@@ -30,14 +31,16 @@ public class Agent13 extends AbstractNegotiationParty {
     private Bid myLastOffer;
     private OpponentModel opponent;
     private final Map<AgentID, OpponentModel> opponentsModels = new HashMap<>();
-    private double concessionRate = 0.05;
+    private double concessionRate = 0.1;
     private final Random randomGenerator = new Random();
     private UncertaintyModelling factory;
-    ExperimentalUserModel e = ( ExperimentalUserModel ) userModel ;
-    UncertainAdditiveUtilitySpace realUSpace;
+//    ExperimentalUserModel e;
+//    UncertainAdditiveUtilitySpace realUSpace;
     private List<Double> bidHistoryAgent = new ArrayList<>();
     private List<Double> bidHistoryOpponent = new ArrayList<>();
-
+    private double worstRecievedBidUtility = 1;
+    private double bestReceivedBidUtility = 0;
+    private boolean opponentIsHardHeaded = false;
 
     @Override
     public void init(NegotiationInfo info) {
@@ -48,7 +51,8 @@ public class Agent13 extends AbstractNegotiationParty {
         this.opponent = new OpponentModel(domain);
         if (hasPreferenceUncertainty()) {
             this.factory = new UncertaintyModelling(domain);
-            //realUSpace = e. getRealUtilitySpace();
+//            e = ( ExperimentalUserModel ) userModel;
+//            realUSpace = e. getRealUtilitySpace();
 
             BidRanking bidRanking = userModel.getBidRanking();
             Bid worstBid = bidRanking.getMinimalBid();
@@ -86,7 +90,7 @@ public class Agent13 extends AbstractNegotiationParty {
             Bid randomBid = generateRandomBid();
             double percent_diff = (this.utilitySpace.getUtility(myLastOffer) - this.utilitySpace.getUtility(randomBid))/this.utilitySpace.getUtility(myLastOffer);
 
-            if(this.utilitySpace.getUtility(randomBid)>= threshold && percent_diff < 0.08){
+            if(this.utilitySpace.getUtility(randomBid)>= threshold && percent_diff < 0.07){
                 if(!result.contains(randomBid)){
                     deadLimit = -1;
                 }
@@ -112,68 +116,71 @@ public class Agent13 extends AbstractNegotiationParty {
     public Action chooseAction(List<Class<? extends Action>> list) {
         List <Double> lastNAgentBids;
         List <Double> lastNOpponentBids;
-        int n = 30;
+        int n = 15;
         // According to Stacked Alternating Offers Protocol list includes
         // Accept, Offer and EndNegotiation actions only.
         double time = getTimeLine().getTime(); // Gets the time, running from t = 0 (start) to t = 1 (deadline).
         // The time is normalized, so agents need not be
         // concerned with the actual internal clock.
 
+        if (time > 0.7 && time < 0.73 && (bestReceivedBidUtility - worstRecievedBidUtility) <= 0.3) {
+            opponentIsHardHeaded = true;
+        }else if(time > 0.7 && time < 0.72 && (bestReceivedBidUtility - worstRecievedBidUtility) > 0.4){
+            System.out.println("Conceder");
+            concessionRate = 0.02; // let them conceed
+        }
+
         // First half of the negotiation offering the max utility (the best agreement possible) for Example Agent
         if (time < 0.1) {
             this.myLastOffer = this.getMaxUtilityBid();
             return new Offer(this.getPartyId(), myLastOffer);
         } else {
-//            if (time > 0.3) concessionRate = 0.01;
-//            if (time > 0.5) concessionRate = 0.02;
-//            if (time > 0.95) concessionRate = 0.04;
-//            if (time > 0.98) concessionRate = 0.01;
-
             try {
-                double utilityThreshold = getUtilityThreshold();
+                double myUtility = this.utilitySpace.getUtility(lastReceivedOffer);
+                double utilityThreshold = getUtilityThreshold() ;
 
-                if(time > 0.75 && lastReceivedOffer != null){
-                    try {
-                        if(bidHistoryAgent.size() > n+1){
-                            lastNAgentBids = bidHistoryAgent.subList(bidHistoryAgent.size() - n+1, bidHistoryAgent.size() - 2);
+                if (time > 0.8 && lastReceivedOffer != null && opponentIsHardHeaded){
+                    concessionRate = 0.04;
+                    double theirUtility = this.opponent.getValue(lastReceivedOffer);
+                    try{
+                        if(bidHistoryOpponent.size() > n+1){
                             lastNOpponentBids = bidHistoryOpponent.subList(bidHistoryOpponent.size() - n+1, bidHistoryOpponent.size() - 2);
-                        }
-                        else{
-                            lastNAgentBids = bidHistoryAgent.subList(0, bidHistoryAgent.size() - 2);
+//                            lastNAgentBids = bidHistoryAgent.subList(bidHistoryAgent.size() - n+1, bidHistoryAgent.size() - 2);
+                        } else {
                             lastNOpponentBids = bidHistoryOpponent.subList(0, bidHistoryOpponent.size() - 2);
+//                            lastNAgentBids = bidHistoryAgent.subList(0, bidHistoryAgent.size() - 2);
                         }
                     } catch (Exception e){
-                        lastNAgentBids = bidHistoryAgent;
                         lastNOpponentBids = bidHistoryOpponent;
+                        lastNAgentBids = bidHistoryAgent;
                     }
 
-                    boolean suddenAgentIncrease = detectSuddenChange(lastNAgentBids, this.utilitySpace.getUtility(lastReceivedOffer), 3, "upper");
-                    boolean suddenOpponentDecrease = detectSuddenChange(lastNOpponentBids, this.opponent.getValue(lastReceivedOffer), 3, "lower");
+//                    boolean suddenIncrease = detectSuddenChange(lastNAgentBids, myUtility, 3, "upper");
+                    boolean suddenDecrease = detectSuddenChange(lastNOpponentBids, theirUtility, 3, "lower");
+                    if (suddenDecrease && (myUtility >= utilityThreshold)){
+                        System.out.println("They dropped");
+                        return new Offer(this.getPartyId(), lastReceivedOffer);
+                    }
 
-//                System.out.println(this.utilitySpace.getUtility(lastReceivedOffer) + " : " + utilityThreshold);
-                    if(suddenAgentIncrease && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold){
-                        System.out.println("We gained!");
-                        return new Accept(this.getPartyId(), lastReceivedOffer);
-                    }
-                    if(suddenOpponentDecrease && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold){
-                        System.out.println("THEY DROPPED!");
-                        System.out.println(this.opponent.getValue(lastReceivedOffer));
-                        return new Accept(this.getPartyId(), lastReceivedOffer);
-                    }
+//                    if (suddenIncrease && (myUtility >= utilityThreshold)){
+//                        System.out.println("Our utility increased");
+//                        return new Offer(this.getPartyId(), lastReceivedOffer);
+//                    }
                 }
+
                 // Accepts the bid on the table in this phase,
                 // if the utility of the bid is higher than Example Agent's last bid.
                 if (lastReceivedOffer != null
                         && myLastOffer != null
-                        && this.utilitySpace.getUtility(lastReceivedOffer) >= utilityThreshold) {
+                        && myUtility >= utilityThreshold) {
                     return new Accept(this.getPartyId(), lastReceivedOffer);
                 }
 
 
                 // Generate random bids above threshold
-                Set<Bid> bidSet = this.generateBids(utilityThreshold, 5000, 50000);
+                Set<Bid> bidSet = this.generateBids(utilityThreshold, 500, 10000);
 
-                if(randomGenerator.nextDouble() <= 0.01) {
+                if(randomGenerator.nextDouble() <= 0.1) {
                     this.myLastOffer =  pickRandomBid(bidSet);
                     return new Offer(this.getPartyId(),this.myLastOffer);
                 } else {
@@ -201,14 +208,20 @@ public class Agent13 extends AbstractNegotiationParty {
 
         if (act instanceof Offer) { // sender is making an offer
             Offer offer = (Offer) act;
+            lastReceivedOffer = offer.getBid();
+            double bidUtility = this.utilitySpace.getUtility(lastReceivedOffer);
+
+            if(bidUtility > bestReceivedBidUtility) bestReceivedBidUtility = bidUtility;
+            if(bidUtility < worstRecievedBidUtility) worstRecievedBidUtility = bidUtility;
+
 
             opponentsModels.putIfAbsent(sender, new OpponentModel(getDomain()));
             opponentsModels.get(sender).updateFrequency(offer.getBid());
             this.opponent.updateFrequency(offer.getBid());
             // storing last received offer
-            lastReceivedOffer = offer.getBid();
-            if(getTimeLine().getTime() > 0.65){
-                bidHistoryAgent.add(this.utilitySpace.getUtility(lastReceivedOffer));
+
+            if(getTimeLine().getTime() > 0.77){
+//                bidHistoryAgent.add(bidUtility);
                 bidHistoryOpponent.add(this.opponent.getValue(lastReceivedOffer));
             }
 
@@ -252,14 +265,14 @@ public class Agent13 extends AbstractNegotiationParty {
     }
 
 
-    public boolean detectSuddenChange(List<Double> arr, double val, int n, String bound){
+    public  boolean detectSuddenChange(List<Double> arr, double val, int n, String bound){
         double [] std = getStandardDeviation(arr);
         double sigN = std[1] * n; // std * n
 
         if (bound.equals("upper")){
             return val >= (sigN + std[0]); // 3sig + mean
         }
-        return val <=(sigN - std[0]); // 3sig - mean
+        return val <=(- sigN + std[0]); // 3sig - mean
     }
 
     public Bid pickRandomBid(Set<Bid> bidSet){

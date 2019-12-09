@@ -1,6 +1,7 @@
 package group13;
 
 import genius.core.Bid;
+import genius.core.BidIterator;
 import genius.core.Domain;
 import genius.core.issue.Issue;
 import genius.core.issue.IssueDiscrete;
@@ -38,7 +39,7 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
     public UncertaintyModelling(Domain d) {
         super(d);
         this.domain = d;
-        this.threshold = 6000;
+        this.threshold = 4500;
     }
 
     public void UncertaintyEstimation(BidRanking bids) {
