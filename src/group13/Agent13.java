@@ -31,7 +31,7 @@ public class Agent13 extends AbstractNegotiationParty {
     private Bid myLastOffer;
     private OpponentModel opponent;
     private final Map<AgentID, OpponentModel> opponentsModels = new HashMap<>();
-    private double concessionRate = 0.08;
+    private double concessionRate = 0.2;
     private final Random randomGenerator = new Random();
     private UncertaintyModelling factory;
 //    ExperimentalUserModel e;
@@ -126,22 +126,22 @@ public class Agent13 extends AbstractNegotiationParty {
         if (time > 0.85 && time < 0.89 && (bestReceivedBidUtility - worstRecievedBidUtility) <= 0.3) {
 //            System.out.println(bestReceivedBidUtility + ": " + worstRecievedBidUtility);
             opponentIsHardHeaded = true;
-            concessionRate = 0.05;
+            concessionRate = 0.04;
         }else if(time > 0.85 && time < 0.89 && (bestReceivedBidUtility - worstRecievedBidUtility) > 0.4){
 //            System.out.println(bestReceivedBidUtility + " : " + worstRecievedBidUtility);
             concessionRate = 0.02; // let them conceed
         }
 
         // First half of the negotiation offering the max utility (the best agreement possible) for Example Agent
-        if (time < 0.1) {
+        if (time < 0.2) {
             this.myLastOffer = this.getMaxUtilityBid();
             return new Offer(this.getPartyId(), myLastOffer);
         } else {
             try {
                 double myUtility = this.utilitySpace.getUtility(lastReceivedOffer);
                 double utilityThreshold = getUtilityThreshold() ;
-
-                if (time > 0.8 && lastReceivedOffer != null && opponentIsHardHeaded){
+                System.out.println(myUtility);
+                if (time > 0.7 && lastReceivedOffer != null && opponentIsHardHeaded){
                     double theirUtility = this.opponent.getValue(lastReceivedOffer);
                     try{
                         if(bidHistoryOpponent.size() > n+1){
@@ -213,18 +213,18 @@ public class Agent13 extends AbstractNegotiationParty {
             lastReceivedOffer = offer.getBid();
             double bidUtility = this.utilitySpace.getUtility(lastReceivedOffer);
 
-            if(bidUtility > bestBidUtility) bestBidUtility = bidUtility;
-            if(bidUtility < worstBidUtility) worstBidUtility = bidUtility;
+//            if(bidUtility > bestBidUtility) bestBidUtility = bidUtility;
+//            if(bidUtility < worstBidUtility) worstBidUtility = bidUtility;
 
-//            if(bidUtility > bestReceivedBidUtility) bestReceivedBidUtility = bidUtility;
-//            if(bidUtility < worstRecievedBidUtility) worstRecievedBidUtility = bidUtility;
+            if(bidUtility > bestReceivedBidUtility) bestReceivedBidUtility = bidUtility;
+            if(bidUtility < worstRecievedBidUtility) worstRecievedBidUtility = bidUtility;
 
             opponentsModels.putIfAbsent(sender, new OpponentModel(getDomain()));
             opponentsModels.get(sender).updateFrequency(offer.getBid());
             this.opponent.updateFrequency(offer.getBid());
             // storing last received offer
 
-            if(getTimeLine().getTime() > 0.77){
+            if(getTimeLine().getTime() > 0.65){
 //                bidHistoryAgent.add(bidUtility);
                 bidHistoryOpponent.add(this.opponent.getValue(lastReceivedOffer));
             }
