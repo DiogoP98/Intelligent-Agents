@@ -31,7 +31,7 @@ public class Agent13 extends AbstractNegotiationParty {
     private Bid myLastOffer;
     private OpponentModel opponent;
     private final Map<AgentID, OpponentModel> opponentsModels = new HashMap<>();
-    private double concessionRate = 0.1;
+    private double concessionRate = 0.08;
     private final Random randomGenerator = new Random();
     private UncertaintyModelling factory;
 //    ExperimentalUserModel e;
@@ -90,7 +90,7 @@ public class Agent13 extends AbstractNegotiationParty {
             Bid randomBid = generateRandomBid();
             double percent_diff = (this.utilitySpace.getUtility(myLastOffer) - this.utilitySpace.getUtility(randomBid))/this.utilitySpace.getUtility(myLastOffer);
 
-            if(this.utilitySpace.getUtility(randomBid)>= threshold && percent_diff < 0.07){
+            if(this.utilitySpace.getUtility(randomBid)>= threshold && percent_diff < 0.1){
                 if(!result.contains(randomBid)){
                     deadLimit = -1;
                 }
@@ -123,10 +123,12 @@ public class Agent13 extends AbstractNegotiationParty {
         // The time is normalized, so agents need not be
         // concerned with the actual internal clock.
 
-        if (time > 0.7 && time < 0.73 && (bestReceivedBidUtility - worstRecievedBidUtility) <= 0.3) {
+        if (time > 0.85 && time < 0.89 && (bestReceivedBidUtility - worstRecievedBidUtility) <= 0.3) {
+//            System.out.println(bestReceivedBidUtility + ": " + worstRecievedBidUtility);
             opponentIsHardHeaded = true;
-        }else if(time > 0.7 && time < 0.72 && (bestReceivedBidUtility - worstRecievedBidUtility) > 0.4){
-            System.out.println("Conceder");
+            concessionRate = 0.05;
+        }else if(time > 0.85 && time < 0.89 && (bestReceivedBidUtility - worstRecievedBidUtility) > 0.4){
+//            System.out.println(bestReceivedBidUtility + " : " + worstRecievedBidUtility);
             concessionRate = 0.02; // let them conceed
         }
 
@@ -140,7 +142,6 @@ public class Agent13 extends AbstractNegotiationParty {
                 double utilityThreshold = getUtilityThreshold() ;
 
                 if (time > 0.8 && lastReceivedOffer != null && opponentIsHardHeaded){
-                    concessionRate = 0.04;
                     double theirUtility = this.opponent.getValue(lastReceivedOffer);
                     try{
                         if(bidHistoryOpponent.size() > n+1){
@@ -152,11 +153,12 @@ public class Agent13 extends AbstractNegotiationParty {
                         }
                     } catch (Exception e){
                         lastNOpponentBids = bidHistoryOpponent;
-                        lastNAgentBids = bidHistoryAgent;
+//                        lastNAgentBids = bidHistoryAgent;
                     }
 
 //                    boolean suddenIncrease = detectSuddenChange(lastNAgentBids, myUtility, 3, "upper");
                     boolean suddenDecrease = detectSuddenChange(lastNOpponentBids, theirUtility, 3, "lower");
+//                    System.out.println(suddenDecrease + " : " + theirUtility);
                     if (suddenDecrease && (myUtility >= utilityThreshold)){
                         System.out.println("They dropped");
                         return new Offer(this.getPartyId(), lastReceivedOffer);
@@ -211,9 +213,11 @@ public class Agent13 extends AbstractNegotiationParty {
             lastReceivedOffer = offer.getBid();
             double bidUtility = this.utilitySpace.getUtility(lastReceivedOffer);
 
-            if(bidUtility > bestReceivedBidUtility) bestReceivedBidUtility = bidUtility;
-            if(bidUtility < worstRecievedBidUtility) worstRecievedBidUtility = bidUtility;
+            if(bidUtility > bestBidUtility) bestBidUtility = bidUtility;
+            if(bidUtility < worstBidUtility) worstBidUtility = bidUtility;
 
+//            if(bidUtility > bestReceivedBidUtility) bestReceivedBidUtility = bidUtility;
+//            if(bidUtility < worstRecievedBidUtility) worstRecievedBidUtility = bidUtility;
 
             opponentsModels.putIfAbsent(sender, new OpponentModel(getDomain()));
             opponentsModels.get(sender).updateFrequency(offer.getBid());
