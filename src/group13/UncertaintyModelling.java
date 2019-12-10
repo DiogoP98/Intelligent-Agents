@@ -8,6 +8,7 @@ import genius.core.issue.ValueDiscrete;
 import genius.core.uncertainty.AdditiveUtilitySpaceFactory;
 import genius.core.uncertainty.BidRanking;
 import genius.core.utility.AdditiveUtilitySpace;
+import genius.core.utility.EvaluatorDiscrete;
 import org.apache.commons.math3.optimization.GoalType;
 import org.apache.commons.math3.optimization.PointValuePair;
 import org.apache.commons.math3.optimization.linear.LinearConstraint;
@@ -21,9 +22,9 @@ import java.util.*;
 
 public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
     private final Domain domain;
-    public AdditiveUtilitySpace u;
-    ArrayList<Integer>[][] positions;
-    Double[][] means;
+    private AdditiveUtilitySpace u;
+    private ArrayList<Integer>[][] positions;
+    private Double[][] means;
     private int threshold;
     //Maps each issue to an integer in range [0,i-1]; i - number of issues
     private HashMap<Integer, Integer> mapping_issues = new HashMap<>();
@@ -41,7 +42,7 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
     public UncertaintyModelling(Domain d) {
         super(d);
         this.domain = d;
-        this.threshold = 4500;
+        this.threshold = 3500;
     }
 
     /**
@@ -84,8 +85,14 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
         if (vars * Bids.size() <= this.threshold)
             LP(Bids, vars, lowerUtility, higherUtility, issues);
         else
-            heuristic_calculation(Bids);
+            heuristic_calculation(Bids, issues);
 
+        for (Issue i : issues) {
+            EvaluatorDiscrete evaluator = (EvaluatorDiscrete) this.u.getEvaluator(i);
+            evaluator.normalizeAll();
+        }
+        this.scaleAllValuesFrom0To1();
+        this.normalizeWeights();
     }
 
     /**
@@ -94,7 +101,9 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
      *
      * @param Bids List of Bids ordered by relative preference
      */
-    private void heuristic_calculation(List<Bid> Bids) {
+    private void heuristic_calculation(List<Bid> Bids, List<Issue> issues) {
+        this.u = getUtilitySpace();
+
         int points = 1;
 
         for (Bid b : Bids) {
@@ -108,7 +117,7 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
             points += 1;
         }
 
-        for (Issue issue : this.getDomain().getIssues()) {
+        for (Issue issue : issues) {
             int issueNumber = issue.getNumber();
             IssueDiscrete issueD = (IssueDiscrete) issue;
             int key = mapping_issues.get(issueNumber);
@@ -132,12 +141,11 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
                 deviation = deviation / size;
                 max_deviation = Math.max(deviation, max_deviation);
                 this.setUtility(issue, valueDiscrete, mean);
+                EvaluatorDiscrete evaluator = (EvaluatorDiscrete) this.u.getEvaluator(issue);
             }
 
             this.setWeight(issue, 1 / max_deviation);
         }
-
-        this.normalizeWeights();
     }
 
     /**
@@ -212,8 +220,6 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
                 pos += 1;
             }
         }
-
-        this.normalizeWeights();
     }
 
     /**
