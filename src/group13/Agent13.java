@@ -1,11 +1,5 @@
 package group13;
 
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
-import java.time.OffsetDateTime;
-import java.util.*;
-
 import genius.core.AgentID;
 import genius.core.Bid;
 import genius.core.Domain;
@@ -15,9 +9,11 @@ import genius.core.actions.Offer;
 import genius.core.parties.AbstractNegotiationParty;
 import genius.core.parties.NegotiationInfo;
 import genius.core.uncertainty.BidRanking;
-import genius.core.uncertainty.ExperimentalUserModel;
-import genius.core.utility.UncertainAdditiveUtilitySpace;
-import genius.core.analysis.MultilateralAnalysis;
+
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.util.*;
 /**
  * ExampleAgent returns the bid that maximizes its own utility for half of the negotiation session.
  * In the second half, it offers a random bid. It only accepts the bid on the table in this phase,
@@ -34,8 +30,6 @@ public class Agent13 extends AbstractNegotiationParty {
     private double concessionRate = 0.2;
     private final Random randomGenerator = new Random();
     private UncertaintyModelling factory;
-//    ExperimentalUserModel e;
-//    UncertainAdditiveUtilitySpace realUSpace;
     private List<Double> bidHistoryAgent = new ArrayList<>();
     private List<Double> bidHistoryOpponent = new ArrayList<>();
     private double worstRecievedBidUtility = 1;
@@ -51,9 +45,6 @@ public class Agent13 extends AbstractNegotiationParty {
         this.opponent = new OpponentModel(domain);
         if (hasPreferenceUncertainty()) {
             this.factory = new UncertaintyModelling(domain);
-//            e = ( ExperimentalUserModel ) userModel;
-//            realUSpace = e. getRealUtilitySpace();
-
             BidRanking bidRanking = userModel.getBidRanking();
             Bid worstBid = bidRanking.getMinimalBid();
             worstBidUtility = this.utilitySpace.getUtility(worstBid);
@@ -92,7 +83,7 @@ public class Agent13 extends AbstractNegotiationParty {
 
             if(this.utilitySpace.getUtility(randomBid)>= threshold && percent_diff < 0.1){
                 if(!result.contains(randomBid)){
-                    deadLimit = -1;
+                    deadLimit -= 1;
                 }
 //                System.out.println(this.utilitySpace.getUtility(randomBid));
                 result.add(randomBid);
@@ -138,9 +129,8 @@ public class Agent13 extends AbstractNegotiationParty {
             return new Offer(this.getPartyId(), myLastOffer);
         } else {
             try {
-                double myUtility = this.utilitySpace.getUtility(lastReceivedOffer);
+                double myUtility = this.utilitySpace.getUtility(lastReceivedOffer) + 0.1;
                 double utilityThreshold = getUtilityThreshold() ;
-                System.out.println(myUtility);
                 if (time > 0.7 && lastReceivedOffer != null && opponentIsHardHeaded){
                     double theirUtility = this.opponent.getValue(lastReceivedOffer);
                     try{
@@ -174,15 +164,15 @@ public class Agent13 extends AbstractNegotiationParty {
                 // if the utility of the bid is higher than Example Agent's last bid.
                 if (lastReceivedOffer != null
                         && myLastOffer != null
-                        && myUtility >= utilityThreshold) {
+                        && myUtility  >= utilityThreshold) {
                     return new Accept(this.getPartyId(), lastReceivedOffer);
                 }
 
 
                 // Generate random bids above threshold
-                Set<Bid> bidSet = this.generateBids(utilityThreshold, 500, 10000);
+                Set<Bid> bidSet = this.generateBids(utilityThreshold, 10, 1000);
 
-                if(randomGenerator.nextDouble() <= 0.1) {
+                if(randomGenerator.nextDouble() <= 0.01) {
                     this.myLastOffer =  pickRandomBid(bidSet);
                     return new Offer(this.getPartyId(),this.myLastOffer);
                 } else {
