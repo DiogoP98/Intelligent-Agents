@@ -30,7 +30,6 @@ public class Agent13 extends AbstractNegotiationParty {
     private double concessionRate = 0.2;
     private final Random randomGenerator = new Random();
     private UncertaintyModelling factory;
-    private List<Double> bidHistoryAgent = new ArrayList<>();
     private List<Double> bidHistoryOpponent = new ArrayList<>();
     private double worstRecievedBidUtility = 1;
     private double bestReceivedBidUtility = 0;
@@ -56,6 +55,10 @@ public class Agent13 extends AbstractNegotiationParty {
 
     }
 
+    /**
+     * @param bid: take in the current bid
+     * @return return score for opponent using opponent modelling
+     */
     private double getOpponentScore(Bid bid){
         double score = 0;
         for(OpponentModel model : opponentsModels.values()){
@@ -65,6 +68,12 @@ public class Agent13 extends AbstractNegotiationParty {
     }
 
 
+    /**
+     * @param threshold : utility threshold for this to be more than utility
+     * @param noOfBids : number of bids to generate
+     * @param limit : limit for iterations
+     * @return : Set of bids that's higher than threshold
+     */
     public Set<Bid> generateBids(double threshold, int noOfBids, int limit){
         Set<Bid> result = new HashSet<>();
         result.add(this.getMaxUtilityBid()); // propose the best bid
@@ -86,7 +95,6 @@ public class Agent13 extends AbstractNegotiationParty {
                 if(!result.contains(randomBid)){
                     deadLimit -= 1;
                 }
-//                System.out.println(this.utilitySpace.getUtility(randomBid));
                 result.add(randomBid);
             }
             count++;
@@ -100,13 +108,9 @@ public class Agent13 extends AbstractNegotiationParty {
     /**
      * When this function is called, it is expected that the Party chooses one of the actions from the possible
      * action list and returns an instance of the chosen action.
-     *
-     * @param list
-     * @return
      */
     @Override
     public Action chooseAction(List<Class<? extends Action>> list) {
-        List <Double> lastNAgentBids;
         List <Double> lastNOpponentBids;
         int n = 15;
         // According to Stacked Alternating Offers Protocol list includes
@@ -116,11 +120,9 @@ public class Agent13 extends AbstractNegotiationParty {
         // concerned with the actual internal clock.
 
         if (time > 0.85 && time < 0.89 && (bestReceivedBidUtility - worstRecievedBidUtility) <= 0.3) {
-//            System.out.println(bestReceivedBidUtility + ": " + worstRecievedBidUtility);
             opponentIsHardHeaded = true;
             concessionRate = 0.04;
         }else if(time > 0.85 && time < 0.89 && (bestReceivedBidUtility - worstRecievedBidUtility) > 0.4){
-//            System.out.println(bestReceivedBidUtility + " : " + worstRecievedBidUtility);
             concessionRate = 0.02; // let them conceed
         }
 
@@ -137,28 +139,18 @@ public class Agent13 extends AbstractNegotiationParty {
                     try{
                         if(bidHistoryOpponent.size() > n+1){
                             lastNOpponentBids = bidHistoryOpponent.subList(bidHistoryOpponent.size() - n+1, bidHistoryOpponent.size() - 2);
-//                            lastNAgentBids = bidHistoryAgent.subList(bidHistoryAgent.size() - n+1, bidHistoryAgent.size() - 2);
                         } else {
                             lastNOpponentBids = bidHistoryOpponent.subList(0, bidHistoryOpponent.size() - 2);
-//                            lastNAgentBids = bidHistoryAgent.subList(0, bidHistoryAgent.size() - 2);
                         }
                     } catch (Exception e){
                         lastNOpponentBids = bidHistoryOpponent;
-//                        lastNAgentBids = bidHistoryAgent;
                     }
 
-//                    boolean suddenIncrease = detectSuddenChange(lastNAgentBids, myUtility, 3, "upper");
                     boolean suddenDecrease = detectSuddenChange(lastNOpponentBids, theirUtility, 3, "lower");
-//                    System.out.println(suddenDecrease + " : " + theirUtility);
                     if (suddenDecrease && (myUtility >= utilityThreshold)){
-                        System.out.println("They dropped");
                         return new Offer(this.getPartyId(), lastReceivedOffer);
                     }
 
-//                    if (suddenIncrease && (myUtility >= utilityThreshold)){
-//                        System.out.println("Our utility increased");
-//                        return new Offer(this.getPartyId(), lastReceivedOffer);
-//                    }
                 }
 
                 // Accepts the bid on the table in this phase,
@@ -177,13 +169,12 @@ public class Agent13 extends AbstractNegotiationParty {
                     this.myLastOffer =  pickRandomBid(bidSet);
                     return new Offer(this.getPartyId(),this.myLastOffer);
                 } else {
-                    // java did some weird shit to it, it's basically saying from bidset, compare and get the best one
+                    // from bidset, compare and get the best one
                     Bid randomBid = Collections.max(bidSet, Comparator.comparingDouble(this::getOpponentScore));
                     Bid nashBid = getNash(bidSet);
                     double randomBidUtility = this.utilitySpace.getUtility(randomBid);
                     double nashBidUtility = this.utilitySpace.getUtility(nashBid);
                     Bid bestBid = randomBidUtility > nashBidUtility ? randomBid : nashBid; // best bid is whatever is higher
-//                    System.out.println(randomBidUtility + " : " + nashBidUtility);
                     this.myLastOffer = bestBid;
                     return new Offer(this.getPartyId(), bestBid);
                 }
@@ -209,8 +200,6 @@ public class Agent13 extends AbstractNegotiationParty {
             lastReceivedOffer = offer.getBid();
             double bidUtility = this.utilitySpace.getUtility(lastReceivedOffer);
 
-//            if(bidUtility > bestBidUtility) bestBidUtility = bidUtility;
-//            if(bidUtility < worstBidUtility) worstBidUtility = bidUtility;
 
             if(bidUtility > bestReceivedBidUtility) bestReceivedBidUtility = bidUtility;
             if(bidUtility < worstRecievedBidUtility) worstRecievedBidUtility = bidUtility;
@@ -219,9 +208,7 @@ public class Agent13 extends AbstractNegotiationParty {
             opponentsModels.get(sender).updateFrequency(offer.getBid());
             this.opponent.updateFrequency(offer.getBid());
             // storing last received offer
-
             if(getTimeLine().getTime() > 0.65){
-//                bidHistoryAgent.add(bidUtility);
                 bidHistoryOpponent.add(this.opponent.getValue(lastReceivedOffer));
             }
 
@@ -243,19 +230,25 @@ public class Agent13 extends AbstractNegotiationParty {
     }
 
 
+    // get utility threshold according to the paper
     public double getUtilityThreshold(){
         return bestBidUtility - (bestBidUtility - worstBidUtility) * Math.pow(getTimeLine().getTime(), 1 / concessionRate);
     }
 
-    public double[] getStandardDeviation(List<Double> arr){
+
+    /**
+     * @param lstDoubles : get a list of doubles
+     * @return : standard deviation of the list
+     */
+    public double[] getStandardDeviation(List<Double> lstDoubles){
         double [] ret = {0.0, 0.0};
         double sum = 0.0, standardDeviation = 0.0;
-        int length = arr.size();
-        for(double num : arr) {
+        int length = lstDoubles.size();
+        for(double num : lstDoubles) {
             sum += num;
         }
         double mean = sum/length;
-        for(double num: arr) {
+        for(double num: lstDoubles) {
             standardDeviation += Math.pow(num - mean, 2);
         }
         ret[0] = mean;
