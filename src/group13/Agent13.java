@@ -35,16 +35,17 @@ public class Agent13 extends AbstractNegotiationParty {
     private double worstRecievedBidUtility = 1;
     private double bestReceivedBidUtility = 0;
     private boolean opponentIsHardHeaded = false;
+    private Domain domain;
 
     @Override
     public void init(NegotiationInfo info) {
         super.init(info);
 
         System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-        Domain domain = getDomain();
-        this.opponent = new OpponentModel(domain);
+        this.domain = getDomain();
+        this.opponent = new OpponentModel(this.domain);
         if (hasPreferenceUncertainty()) {
-            this.factory = new UncertaintyModelling(domain);
+            this.factory = new UncertaintyModelling(this.domain);
             BidRanking bidRanking = userModel.getBidRanking();
             Bid worstBid = bidRanking.getMinimalBid();
             worstBidUtility = this.utilitySpace.getUtility(worstBid);
@@ -274,5 +275,20 @@ public class Agent13 extends AbstractNegotiationParty {
         list.addAll(bidSet);
         Collections.shuffle(list);
         return list.get(0);
+    }
+
+    public Bid getNash() {
+        Set<Bid> bids = generateBids(getUtilityThreshold(), 100, 1000);
+        double reservationValue = this.factory.getUtilitySpace().getReservationValue();
+        double bestUtility = 0.0;
+        Bid nash = bids.iterator().next();
+        for(Bid bid: bids) {
+            double utility = (this.opponent.getValue(bid) - reservationValue) * (this.factory.getUtilitySpace().getUtility(bid) - reservationValue);
+            if(utility > bestUtility) {
+                bestUtility = utility;
+                nash = bid;
+            }
+        }
+        return nash;
     }
 }
