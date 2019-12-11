@@ -131,7 +131,7 @@ public class Agent13 extends AbstractNegotiationParty {
         } else {
             try {
                 double myUtility = this.utilitySpace.getUtility(lastReceivedOffer) + 0.1;
-                double utilityThreshold = getUtilityThreshold() ;
+                double utilityThreshold = getUtilityThreshold();
                 if (time > 0.7 && lastReceivedOffer != null && opponentIsHardHeaded){
                     double theirUtility = this.opponent.getValue(lastReceivedOffer);
                     try{
@@ -178,7 +178,12 @@ public class Agent13 extends AbstractNegotiationParty {
                     return new Offer(this.getPartyId(),this.myLastOffer);
                 } else {
                     // java did some weird shit to it, it's basically saying from bidset, compare and get the best one
-                    Bid bestBid = Collections.max(bidSet, Comparator.comparingDouble(this::getOpponentScore));
+                    Bid randomBid = Collections.max(bidSet, Comparator.comparingDouble(this::getOpponentScore));
+                    Bid nashBid = getNash(bidSet);
+                    double randomBidUtility = this.utilitySpace.getUtility(randomBid);
+                    double nashBidUtility = this.utilitySpace.getUtility(nashBid);
+                    Bid bestBid = randomBidUtility > nashBidUtility ? randomBid : nashBid; // best bid is whatever is higher
+//                    System.out.println(randomBidUtility + " : " + nashBidUtility);
                     this.myLastOffer = bestBid;
                     return new Offer(this.getPartyId(), bestBid);
                 }
@@ -277,8 +282,7 @@ public class Agent13 extends AbstractNegotiationParty {
         return list.get(0);
     }
 
-    public Bid getNash() {
-        Set<Bid> bids = generateBids(getUtilityThreshold(), 100, 1000);
+    public Bid getNash(Set <Bid> bids) {
         double reservationValue = this.factory.getUtilitySpace().getReservationValue();
         double bestUtility = 0.0;
         Bid nash = bids.iterator().next();
