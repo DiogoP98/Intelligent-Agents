@@ -14,11 +14,8 @@ import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.*;
-/**
- * ExampleAgent returns the bid that maximizes its own utility for half of the negotiation session.
- * In the second half, it offers a random bid. It only accepts the bid on the table in this phase,
- * if the utility of the bid is higher than Example Agent's last bid.
- */
+
+
 public class Agent13 extends AbstractNegotiationParty {
     private final String description = "Winter is upon you";
     private double bestBidUtility;
@@ -126,8 +123,8 @@ public class Agent13 extends AbstractNegotiationParty {
             concessionRate = 0.02; // let them conceed
         }
 
-        // First half of the negotiation offering the max utility (the best agreement possible) for Example Agent
-        if (time < 0.2) {
+        // First 20% of the negotiation offering the max utility (the best agreement possible) for Example Agent
+        if (time < 0.2 || this.opponent.numberOfBids < 10) {
             this.myLastOffer = this.getMaxUtilityBid();
             return new Offer(this.getPartyId(), myLastOffer);
         } else {
@@ -188,8 +185,8 @@ public class Agent13 extends AbstractNegotiationParty {
 
     /**
      * This method is called to inform the party that another NegotiationParty chose an Action.
-     * @param sender
-     * @param act
+     * @param sender : opponent Agent ID
+     * @param act : action taken by the opponent (includes their offer)
      */
     @Override
     public void receiveMessage(AgentID sender, Action act) {
@@ -198,17 +195,23 @@ public class Agent13 extends AbstractNegotiationParty {
         if (act instanceof Offer) { // sender is making an offer
             Offer offer = (Offer) act;
             lastReceivedOffer = offer.getBid();
+            double time = getTimeLine().getTime();
+
             double bidUtility = this.utilitySpace.getUtility(lastReceivedOffer);
 
 
             if(bidUtility > bestReceivedBidUtility) bestReceivedBidUtility = bidUtility;
             if(bidUtility < worstRecievedBidUtility) worstRecievedBidUtility = bidUtility;
 
-            opponentsModels.putIfAbsent(sender, new OpponentModel(getDomain()));
-            opponentsModels.get(sender).updateFrequency(offer.getBid());
-            this.opponent.updateFrequency(offer.getBid());
+            //If time is close to deadline don't update opponent model because it might take too long
+            if(time < 0.95){
+                opponentsModels.putIfAbsent(sender, new OpponentModel(getDomain()));
+                opponentsModels.get(sender).updateFrequency(offer.getBid());
+                this.opponent.updateFrequency(offer.getBid());
+            }
+
             // storing last received offer
-            if(getTimeLine().getTime() > 0.65){
+            if(time > 0.65){
                 bidHistoryOpponent.add(this.opponent.getValue(lastReceivedOffer));
             }
 

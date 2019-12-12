@@ -3,12 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="add49c30-608a-4caf-88e1-efdc17207919" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/etc/templates/partydomain/party2_utility.xml" beforeDir="false" afterPath="$PROJECT_DIR$/etc/templates/partydomain/party2_utility.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/running.txt" beforeDir="false" afterPath="$PROJECT_DIR$/running.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/group13/MyPropagator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/group13/MyPropagator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/group13/OpponentModelling.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/group13/OpponentModelling.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/group13/UncertaintyModelling.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/group13/UncertaintyModelling.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/group13/test.java" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -122,6 +116,8 @@
       <workItem from="1574954618437" duration="11563000" />
       <workItem from="1575123262926" duration="4471000" />
       <workItem from="1575128718839" duration="4119000" />
+      <workItem from="1575929084922" duration="1888000" />
+      <workItem from="1576019397500" duration="1748000" />
     </task>
     <servers />
   </component>

@@ -15,16 +15,15 @@ public class OpponentModel {
     private HashMap<String, Integer> mapping_values = new HashMap<String, Integer>();
     private Integer[][] frequency;
     private Double[] weights;
-    private int numberOfBids;
+    public int numberOfBids;
 
     /**
-     * Instatinates a new opponent model.
+     * Instantiates a new opponent model.
      *
      * @param d Negotiation Domain
      */
     public OpponentModel(Domain d) {
         this.d = d;
-
         buildData();
     }
 
@@ -167,7 +166,6 @@ public class OpponentModel {
         this.numberOfBids = 0;
 
         List<Issue> issues = this.d.getIssues();
-
         this.frequency = new Integer[issues.size()][];
         this.weights = new Double[issues.size()];
 

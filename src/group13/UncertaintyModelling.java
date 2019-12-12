@@ -52,6 +52,7 @@ public class UncertaintyModelling extends AdditiveUtilitySpaceFactory {
      */
     public void UncertaintyEstimation(BidRanking bids) {
         List<Bid> Bids = bids.getBidOrder();
+
         double lowerUtility = bids.getLowUtility();
         double higherUtility = bids.getHighUtility();
 

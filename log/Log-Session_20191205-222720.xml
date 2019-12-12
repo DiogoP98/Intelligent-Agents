@@ -1,0 +1,7 @@
+<?xml version="1.0" ?><Session>
+<NegotiationOutcome exception="Failed to execute protocol: Execution failed of OptimalBidderSimple@1:java.lang.IllegalStateException: There is no evaluator for issue 2: There is no evaluator for issue 2" currentTime="Thu Dec 05 22:27:20 GMT 2019" lastAction="(Offer  bid:Bid[Food: Catering])" bids="1" runtime="0.037071446" deadline="60rounds">
+<resultsOfAgent agent="Agent13" utilspace="etc/templates/partydomain/party1_utility.xml" agentClass="/Users/Diogo/Desktop/Intelligent-Agents/out/production/Intelligent-Agents/group13/Agent13.class" finalUtility="0.0" discountedUtility="0.0" discount="1.0">
+</resultsOfAgent>
+<resultsOfAgent agent="OptimalBidderSimple" utilspace="etc/templates/partydomain/party2_utility.xml" agentClass="agents.OptimalBidderSimple" finalUtility="0.0" discountedUtility="0.0" discount="1.0">
+</resultsOfAgent>
+</NegotiationOutcome></Session>
